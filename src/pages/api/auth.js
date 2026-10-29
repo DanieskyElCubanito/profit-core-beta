@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { getUserById, registerUser } from '../../services/userService.js';
 
-// ==========================================
+//  ==========================================
 // 1. MOTOR DE VALIDACIÓN CRIPTOGRÁFICA
 // ==========================================
 function validateTelegramSignature(initData) {
