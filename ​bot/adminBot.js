@@ -11,7 +11,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 // Tu ID de administrador (Extraído de tu configuración previa)
-const ADMIN_ID = 8469212694; 
+const ADMIN_ID = 8968109534; 
 
 if (!BOT_TOKEN || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error("❌ Faltan variables de entorno. Revisa tu archivo .env");
