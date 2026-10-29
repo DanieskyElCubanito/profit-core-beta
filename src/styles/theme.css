@@ -1,14 +1,18 @@
-/* --- CONFIGURACIÓN Y VARIABLES PREMIUM --- */
+/* --- CONFIGURACIÓN Y VARIABLES CYBERPUNK NEÓN --- */
 :root {
-    --blue-tg: #0088cc;
-    --blue-glow: rgba(0, 136, 204, 0.2);
-    --dark-deep: #0b0f19; /* 🌟 Actualizado al azul nocturno profundo */
-    --card-bg: #111827;   
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --neon-cyan: #00f0ff;
+    --neon-pink: #ff1493;
+    --cyan-glow: rgba(0, 240, 255, 0.2);
+    --pink-glow: rgba(255, 20, 147, 0.2);
+    
+    --dark-deep: #05070a; /* Oscuridad pura para resaltar el neón */
+    --card-bg: #0a0e17;   
+    --glass-border: rgba(0, 240, 255, 0.15);
+    
     --text-primary: #ffffff;
     --text-secondary: #94a3b8;
     --success: #10b981;
-    --danger: #ef4444;
+    --danger: #ff1493;
     --nav-height: 75px;
 }
 
@@ -23,10 +27,10 @@ body {
     padding: 0;
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
     background-color: var(--dark-deep);
-    /* 🌟 Efecto premium: Dos esferas de luz azul difuminadas en el fondo */
+    /* Efecto premium: Matrices de luz cian difuminadas en el fondo */
     background-image: 
-        radial-gradient(circle at 0% 0%, rgba(0, 136, 204, 0.15) 0%, transparent 45%),
-        radial-gradient(circle at 100% 20%, rgba(0, 136, 204, 0.1) 0%, transparent 40%);
+        radial-gradient(circle at 0% 0%, rgba(0, 240, 255, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 100% 20%, rgba(255, 20, 147, 0.05) 0%, transparent 40%);
     background-attachment: fixed;
     color: var(--text-primary);
     line-height: 1.5;
@@ -37,38 +41,40 @@ body {
 .modern-input-wrapper {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(0, 136, 204, 0.3);
-    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
     padding: 5px 15px;
     margin-bottom: 20px;
     transition: all 0.3s ease;
 }
 
 .modern-input-wrapper:focus-within {
-    border-color: var(--blue-tg);
-    box-shadow: 0 0 10px rgba(0, 136, 204, 0.2);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 12px var(--cyan-glow);
 }
 
 .input-icon {
     margin-right: 12px;
     display: flex;
     align-items: center;
+    color: var(--neon-cyan);
 }
 
 #invest-amount {
     background: transparent;
     border: none;
-    color: var(--text-primary);
+    color: var(--neon-cyan);
     font-size: 1.2rem;
     width: 100%;
     padding: 12px 0;
     outline: none;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', monospace;
+    font-weight: bold;
 }
 
 #invest-amount::placeholder {
-    color: #64748b;
+    color: #334155;
     font-weight: 500;
 }
 
@@ -104,39 +110,42 @@ body {
 .user-photo {
     width: 50px;
     height: 50px;
-    border-radius: 15px;
-    background: var(--blue-tg);
-    border: 2px solid var(--glass-border);
+    border-radius: 12px;
+    background: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 10px var(--cyan-glow);
     object-fit: cover;
 }
 
 .id-badge {
-    background: rgba(0, 136, 204, 0.1);
-    color: var(--blue-tg);
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--neon-cyan);
     padding: 4px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 800;
-    border: 1px solid rgba(0, 136, 204, 0.2);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    font-family: monospace;
 }
 
 /* --- TARJETAS --- */
 .main-card {
     background: var(--card-bg);
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 25px;
     border: 1px solid var(--glass-border);
     margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 15px rgba(0, 240, 255, 0.02);
 }
 
 .balance-amount {
     font-size: 2.8rem;
     font-weight: 800;
     margin: 10px 0;
-    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    background: linear-gradient(135deg, #fff 0%, var(--neon-cyan) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    font-family: monospace;
 }
 
 /* --- NAVEGACIÓN INFERIOR --- */
@@ -146,13 +155,13 @@ body {
     left: 15px;
     right: 15px;
     height: var(--nav-height);
-    background: rgba(17, 24, 39, 0.9);
+    background: rgba(10, 14, 23, 0.95);
     backdrop-filter: blur(15px);
     display: flex;
-    border-radius: 22px;
-    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
     z-index: 9999;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    box-shadow: 0 15px 40px rgba(0, 240, 255, 0.1);
 }
 
 .nav-item {
@@ -173,45 +182,49 @@ body {
 }
 
 .nav-item.active {
-    color: var(--blue-tg);
+    color: var(--neon-cyan);
     transform: translateY(-5px);
 }
 
 .nav-item.active i {
-    text-shadow: 0 0 15px var(--blue-glow);
+    text-shadow: 0 0 15px var(--neon-cyan);
 }
 
 /* --- BOTONES --- */
 .btn-primary {
     width: 100%;
     padding: 16px;
-    border-radius: 16px;
+    border-radius: 12px;
     border: none;
-    background: var(--blue-tg);
-    color: white;
-    font-weight: 800;
+    background: linear-gradient(90deg, #005f73, var(--neon-cyan));
+    color: #000;
+    font-weight: 900;
     font-size: 1rem;
-    box-shadow: 0 4px 15px var(--blue-glow);
+    box-shadow: 0 4px 15px var(--cyan-glow);
     cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .btn-primary:active {
     transform: scale(0.96);
-    filter: brightness(0.9);
+    filter: brightness(1.2);
 }
 
 /* --- INPUTS --- */
 input {
     width: 100%;
-    background: #0d111c;
+    background: rgba(0,0,0,0.5);
     border: 1px solid var(--glass-border);
-    border-radius: 14px;
+    border-radius: 10px;
     padding: 14px;
-    color: white;
+    color: var(--neon-cyan);
     font-weight: 600;
     outline: none;
+    font-family: monospace;
 }
 
 input:focus {
-    border-color: var(--blue-tg);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--cyan-glow);
 }
