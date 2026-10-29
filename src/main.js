@@ -3,7 +3,7 @@ import { updateDashboard } from './components/Dashboard.js';
 import { renderHistory } from './components/HistoryList.js';
 // Cambiamos el servicio de pagos inseguro por uno que se comunique con tu backend
 import { requestSecureDeposit, verifyAdminStatus } from './services/apiService.js'; 
-import { API_URLS } from './config/constants.js';
+import { API_URLS } from './config/constants.js'; 
 
 let paymentTimerInterval = null;
 let isGeneratingWallet = false;
