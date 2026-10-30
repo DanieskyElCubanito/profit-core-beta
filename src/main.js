@@ -1,304 +1,231 @@
-import { state } from './state/appState.js';
-import { updateDashboard } from './components/Dashboard.js';
-import { renderHistory } from './components/HistoryList.js';
-
-let paymentTimerInterval = null;
-let isGeneratingWallet = false;
-
 // ==========================================
-// 1. CONEXIÓN AL BACKEND (VERCEL / SUPABASE)
+// 1. ESTADO DEL JUEGO Y PERSISTENCIA
 // ==========================================
-async function syncUserData(initData) {
-    try {
-        const response = await fetch('/api/auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            // Actualizamos el estado con los datos reales de la base de datos
-            state.totalEarnedUSD = data.balance || 0;
-            state.totalInvestedUSDT = data.invested || 0;
-            state.accumulatedMining = data.accumulated || 0;
-            state.canClaimDaily = data.canClaimDaily !== false;
-            updateDashboard();
-        }
-    } catch (error) {
-        console.error("Error sincronizando con Supabase:", error);
-    }
-}
-
-async function verifyAdminStatus(initData) {
-    try {
-        const urlParams = new URLSearchParams(initData);
-        const userString = urlParams.get('user');
-        if (!userString) return false;
-        const user = JSON.parse(decodeURIComponent(userString));
-        return user.id === 8968109534; // Tu ID de operador maestro
-    } catch (error) {
-        return false;
-    }
-}
-
-// ==========================================
-// 2. MOTOR DE MINERÍA PASIVA (Cloud Mining)
-// ==========================================
-export function startMiningEngine() {
-    setInterval(() => {
-        if (typeof state.addMiningTick === 'function') {
-            state.addMiningTick();
-        }
-
-        const displayHash = document.getElementById('mining-hash');
-        const speedEl = document.getElementById('mining-speed');
-        
-        if (displayHash && state.totalInvestedUSDT > 0) {
-            displayHash.innerText = state.accumulatedMining.toFixed(6);
-            if (speedEl) {
-                const currentGHS = Math.floor(state.totalInvestedUSDT * 1000);
-                speedEl.innerHTML = `<i class="fa-solid fa-bolt" style="color: #00f0ff;"></i> ${currentGHS.toLocaleString()} GH/s Activos`;
-            }
-        }
-        state.saveLocal();
-    }, 1000);
-}
-
-// ==========================================
-// 3. RECOLECCIÓN DE MINERÍA Y MISIONES
-// ==========================================
-export function claimMining() {
-    if (state.accumulatedMining <= 0) {
-        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("No hay recompensas minadas suficientes para recolectar.") : alert("No hay saldo minado.");
-        return;
-    }
-
-    state.totalEarnedUSD += state.accumulatedMining;
-    state.accumulatedMining = 0;
-    state.saveLocal();
-
-    const balanceEl = document.getElementById('main-balance-usdt');
-    if (balanceEl) balanceEl.innerText = state.totalEarnedUSD.toFixed(4);
-
-    const displayHash = document.getElementById('mining-hash');
-    if (displayHash) displayHash.innerText = "0.000000";
-
-    const msg = "⚡ Minería recolectada y enviada a tu bóveda con éxito.";
-    window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert(msg) : alert(msg);
-}
-
-export async function claimDailyQuest() {
-    if (!state.canClaimDaily) return;
+const state = {
+    saldo: parseFloat(localStorage.getItem('cf_saldo')) || 0.00,
+    zanahorias: parseFloat(localStorage.getItem('cf_zanahorias')) || 0,
+    lechugaFin: parseInt(localStorage.getItem('cf_lechuga_fin')) || 0, // Timestamp de cuándo se acaba la comida
     
-    const btn = document.getElementById('daily-quest-btn');
-    if (btn) {
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Procesando...`;
-        btn.style.cursor = "wait";
-    }
+    // Inventario de conejos (Cantidad comprada de cada uno)
+    conejos: JSON.parse(localStorage.getItem('cf_conejos')) || {
+        blanco: 0,
+        manchado: 0,
+        marron: 0,
+        rey: 0
+    },
 
-    try {
-        const initData = window.Telegram?.WebApp?.initData || '';
-        // Petición real al backend para validar la misión
-        const response = await fetch('/api/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'claim_daily', initData })
-        });
+    // Tasas de producción (Zanahorias por día)
+    tasas: {
+        blanco: 1000,
+        manchado: 8000,
+        marron: 1040000,
+        rey: 30000000
+    },
 
-        if (!response.ok) throw new Error("Error en servidor");
-        
-        state.canClaimDaily = false; 
-        state.totalEarnedUSD += 0.15; // Recompensa
-        state.saveLocal();
-        
-        const balanceEl = document.getElementById('main-balance-usdt');
-        if (balanceEl) balanceEl.innerText = state.totalEarnedUSD.toFixed(4);
-
-        if (btn) {
-            btn.innerHTML = `<i class="fa-solid fa-clock"></i> Vuelve Mañana`;
-            btn.style.background = "#333";
-            btn.style.color = "#888";
-            btn.style.borderColor = "#333";
-            btn.style.cursor = "not-allowed";
-        }
-        
-        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("🎁 ¡Bono añadido a tu bóveda!") : alert("Bono reclamado.");
-    } catch (error) {
-        console.error("Error en bono diario", error);
-        if (btn) {
-            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Reclamar Bono Diario`;
-            btn.style.cursor = "pointer";
-        }
-        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("❌ Error al reclamar el bono.") : alert("Error al reclamar.");
-    }
-}
-
-// ==========================================
-// 4. PASARELA DE PAGOS SEGURA
-// ==========================================
-export async function openPayModal() {
-    if (isGeneratingWallet) return;
-
-    const amountInput = document.getElementById('invest-amount');
-    const amount = parseFloat(amountInput?.value || 0);
-
-    if (!amount || amount < 0.1) {
-        const errorMsg = "❌ El mínimo de inyección de liquidez es 0.10 USDT";
-        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert(errorMsg) : alert(errorMsg);
-        return;
-    }
-
-    isGeneratingWallet = true;
-    const payModal = document.getElementById('payModal');
-    if (payModal) payModal.style.display = 'flex';
-
-    const addressDisplay = document.getElementById('wallet-address-display');
-    if (addressDisplay) addressDisplay.innerText = "Conectando con la blockchain...";
-    const qrImg = document.getElementById('qr-image');
-    if (qrImg) qrImg.src = ''; 
-
-    try {
-        const initData = window.Telegram?.WebApp?.initData || '';
-        const response = await fetch('/api/invest', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount, initData })
-        });
-        
-        if (!response.ok) throw new Error("El nodo rechazó la solicitud.");
-        const depositData = await response.json();
-
-        if (depositData && depositData.address) {
-            if (addressDisplay) addressDisplay.innerText = depositData.address;
-            if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(depositData.address)}&color=00f0ff&bgcolor=05070a`; 
-            startPaymentTimer(30);
-        }
-    } catch (e) {
-        console.error("Error de seguridad en pagos:", e);
-        if (addressDisplay) addressDisplay.innerText = "Error de red neuronal. Reintentando...";
-        setTimeout(() => closePayModal(), 3000);
-    } finally {
-        isGeneratingWallet = false;
-    }
-}
-
-export function closePayModal() {
-    const payModal = document.getElementById('payModal');
-    if (payModal) payModal.style.display = 'none';
-    if (paymentTimerInterval) {
-        clearInterval(paymentTimerInterval);
-        paymentTimerInterval = null;
-    }
-}
-
-function startPaymentTimer(minutes) {
-    if (paymentTimerInterval) clearInterval(paymentTimerInterval);
-    let seconds = minutes * 60;
-
-    paymentTimerInterval = setInterval(() => {
-        const timerDisplay = document.getElementById('payment-countdown');
-        if (seconds <= 0) {
-            clearInterval(paymentTimerInterval);
-            paymentTimerInterval = null;
-            if (timerDisplay) timerDisplay.innerText = "Sesión expirada";
-            return;
-        }
-        let mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        let secs = (seconds % 60).toString().padStart(2, '0');
-        if (timerDisplay) timerDisplay.innerText = `${mins}:${secs}`; 
-        seconds--;
-    }, 1000);
-}
-
-// ==========================================
-// 5. NAVEGACIÓN Y UI
-// ==========================================
-export function switchTab(tabId) {
-    document.querySelectorAll('.view').forEach(section => section.classList.remove('active'));
-    const activeSection = document.getElementById(tabId);
-    if (activeSection) activeSection.classList.add('active'); 
-}
-
-export function copyLink() {
-    const refInput = document.getElementById('ref-link');
-    if (refInput && !refInput.value.includes('GENERANDO')) {
-        navigator.clipboard.writeText(refInput.value).then(() => {
-            window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("✅ Nodo de referido copiado.") : alert("Copiado.");
-        });
-    }
-}
-
-export function copyAddress() {
-    const addrDisplay = document.getElementById('wallet-address-display');
-    if (addrDisplay && addrDisplay.innerText.length > 20) {
-        navigator.clipboard.writeText(addrDisplay.innerText).then(() => {
-            window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("✅ Hash copiado al portapapeles.") : alert("Copiado.");
-        });
-    }
-}
-
-export function calculateROI() {
-    const amountInput = document.getElementById('invest-amount');
-    const calcWeekly = document.getElementById('calc-weekly');
-    const calcMonthly = document.getElementById('calc-monthly');
-    const calcReturn = document.getElementById('calc-return');
-
-    const amount = parseFloat(amountInput?.value) || 0;
-    if (amount >= 0.1) {
-        const daily = amount * 0.05;
-        if (calcWeekly) calcWeekly.innerText = (daily * 7).toFixed(2);
-        if (calcMonthly) calcMonthly.innerText = (daily * 30).toFixed(2);
-        if (calcReturn) calcReturn.innerText = (amount * 2).toFixed(2);
-    }
-}
-
-// ==========================================
-// 6. ARRANQUE DEL SISTEMA
-// ==========================================
-window.onload = async () => {
-    console.log("Iniciando motor de minería pasiva...");
-
-    if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-        window.Telegram.WebApp.setHeaderColor('#05070a'); 
-    }
-
-    try {
-        const tgData = window.Telegram?.WebApp?.initDataUnsafe;
-        const secureInitData = window.Telegram?.WebApp?.initData;
-
-        // Actualización UI inicial por defecto
-        const balanceEl = document.getElementById('main-balance-usdt');
-        if (balanceEl) balanceEl.innerText = state.totalEarnedUSD.toFixed(4);
-
-        if (tgData?.user) {
-            state.userId = tgData.user.id;
-            document.getElementById('user-id').innerText = `ID: ${state.userId}`;
-            document.getElementById('user-full-name').innerText = `${tgData.user.first_name} ${tgData.user.last_name || ''}`.trim();
-            
-            // Verificamos si es admin
-            if (secureInitData) {
-                const isAdmin = await verifyAdminStatus(secureInitData);
-                if (isAdmin) state.isAdmin = true;
-                
-                // Pedimos los saldos reales a Supabase en segundo plano
-                syncUserData(secureInitData);
-            }
-        }
-
-        startMiningEngine();
-
-    } catch (error) {
-        console.error("[CRÍTICO] Fallo en la matriz de inicio:", error);
+    guardar() {
+        localStorage.setItem('cf_saldo', this.saldo.toFixed(4));
+        localStorage.setItem('cf_zanahorias', this.zanahorias.toFixed(2));
+        localStorage.setItem('cf_lechuga_fin', this.lechugaFin.toString());
+        localStorage.setItem('cf_conejos', JSON.stringify(this.conejos));
     }
 };
 
-window.openPayModal = openPayModal;
-window.closePayModal = closePayModal;
-window.copyLink = copyLink;
-window.copyAddress = copyAddress;
-window.calculateROI = calculateROI;
-window.switchTab = switchTab;
-window.claimMining = claimMining;
-window.claimDailyQuest = claimDailyQuest;
+// ==========================================
+// 2. MOTOR DE TIEMPO Y PRODUCCIÓN (Game Loop)
+// ==========================================
+let ultimoTick = Date.now();
+
+function gameLoop() {
+    const ahora = Date.now();
+    const deltaSegundos = (ahora - ultimoTick) / 1000;
+    ultimoTick = ahora;
+
+    // 1. Verificar si hay lechuga (comida)
+    const tieneLechuga = state.lechugaFin > ahora;
+
+    if (tieneLechuga) {
+        // 2. Calcular producción total por segundo
+        let produccionDiariaTotal = 
+            (state.conejos.blanco * state.tasas.blanco) +
+            (state.conejos.manchado * state.tasas.manchado) +
+            (state.conejos.marron * state.tasas.marron) +
+            (state.conejos.rey * state.tasas.rey);
+
+        const produccionPorSegundo = produccionDiariaTotal / 86400; // 86400 segundos en un día
+        
+        // 3. Sumar zanahorias
+        state.zanahorias += produccionPorSegundo * deltaSegundos;
+    }
+
+    // 4. Actualizar la interfaz gráfica
+    actualizarDOM(tieneLechuga, ahora);
+}
+
+// Ejecutar el motor 10 veces por segundo para animaciones fluidas
+setInterval(gameLoop, 100);
+setInterval(() => state.guardar(), 5000); // Guardar automático cada 5 segundos
+
+// ==========================================
+// 3. LÓGICA DE COMPRA Y VENTA
+// ==========================================
+
+// Tasa de cambio: 1,000 zanahorias = $0.01
+window.venderZanahorias = function() {
+    if (state.zanahorias >= 1000) {
+        // Calculamos el valor en USD
+        const gananciaUSD = (state.zanahorias / 1000) * 0.01;
+        state.saldo += gananciaUSD;
+        state.zanahorias = 0; // Se vacía la cesta
+        state.guardar();
+        
+        mostrarNotificacion(`¡Vendiste tus zanahorias por $${gananciaUSD.toFixed(2)}!`);
+        actualizarDOM(state.lechugaFin > Date.now(), Date.now());
+    } else {
+        mostrarNotificacion("Necesitas al menos 1,000 zanahorias para vender.");
+    }
+};
+
+window.comprarConejo = function(tipo, precioUSD) {
+    if (state.saldo >= precioUSD) {
+        state.saldo -= precioUSD;
+        state.conejos[tipo]++;
+        state.guardar();
+        mostrarNotificacion(`¡Nuevo conejo comprado con éxito!`);
+        actualizarDOM(state.lechugaFin > Date.now(), Date.now());
+    } else {
+        mostrarNotificacion("Saldo insuficiente. ¡Necesitas recargar o vender más zanahorias!");
+    }
+};
+
+window.comprarLechuga = function(precioUSD, diasExtra) {
+    if (state.saldo >= precioUSD) {
+        state.saldo -= precioUSD;
+        
+        const ahora = Date.now();
+        const milisegundosExtra = diasExtra * 86400 * 1000;
+        
+        // Si ya tenía tiempo, se le suma. Si no, se calcula desde ahora.
+        if (state.lechugaFin > ahora) {
+            state.lechugaFin += milisegundosExtra;
+        } else {
+            state.lechugaFin = ahora + milisegundosExtra;
+        }
+        
+        state.guardar();
+        mostrarNotificacion(`¡Compraste alimento para ${diasExtra} días!`);
+        actualizarDOM(true, ahora);
+    } else {
+        mostrarNotificacion("Saldo insuficiente para comprar lechuga.");
+    }
+};
+
+// Solo para pruebas: Te regala dinero para que pruebes los botones
+window.regalarSaldoPrueba = function() {
+    state.saldo += 10.00;
+    state.guardar();
+    mostrarNotificacion("¡$10.00 añadidos para pruebas!");
+};
+
+// ==========================================
+// 4. ACTUALIZACIÓN VISUAL (DOM)
+// ==========================================
+function actualizarDOM(tieneLechuga, ahora) {
+    // Actualizar Saldo Global (Hay que ponerle un id="saldo-global" al saldo del header)
+    document.querySelectorAll('.balance-pill').forEach(el => {
+        el.innerHTML = `$${state.saldo.toFixed(2)} <button class="btn-add" onclick="regalarSaldoPrueba()">+</button>`;
+    });
+
+    // Actualizar Cesta en la Granja
+    const cestaValor = document.querySelector('.basket-info div div:nth-child(2)');
+    const cestaUsd = document.querySelector('.basket-info div div:nth-child(3)');
+    if (cestaValor) cestaValor.innerText = Math.floor(state.zanahorias).toLocaleString();
+    if (cestaUsd) cestaUsd.innerText = `≈ $${((state.zanahorias / 1000) * 0.01).toFixed(4)}`;
+
+    // Actualizar Botón de Vender
+    const btnVender = document.querySelector('.btn-sell span');
+    if (btnVender) {
+        const usdCalculado = ((state.zanahorias / 1000) * 0.01).toFixed(4);
+        btnVender.innerText = `🥕 ${Math.floor(state.zanahorias).toLocaleString()} → +$${usdCalculado}`;
+    }
+
+    // Calcular Producción Diaria Actual
+    let prodDiaria = 
+        (state.conejos.blanco * state.tasas.blanco) +
+        (state.conejos.manchado * state.tasas.manchado) +
+        (state.conejos.marron * state.tasas.marron) +
+        (state.conejos.rey * state.tasas.rey);
+    let gananciaDiariaUSD = (prodDiaria / 1000) * 0.01;
+    let totalConejos = state.conejos.blanco + state.conejos.manchado + state.conejos.marron + state.conejos.rey;
+
+    // Actualizar Cajas de Estadísticas
+    const statsElements = document.querySelectorAll('.stat-box strong');
+    if (statsElements.length >= 3) {
+        statsElements[0].innerText = `🥕 ${prodDiaria.toLocaleString()}`;
+        statsElements[1].innerText = `$${gananciaDiariaUSD.toFixed(2)}`;
+        statsElements[2].innerText = totalConejos.toString();
+    }
+
+    // Formatear Tiempo de Lechuga (Comedero)
+    const comederoTexto = document.querySelector('.card h3 + div + div');
+    const comederoCantidad = document.querySelector('.card h3 + div');
+    if (comederoTexto && comederoCantidad) {
+        if (tieneLechuga) {
+            const segundosRestantes = Math.floor((state.lechugaFin - ahora) / 1000);
+            const dias = Math.floor(segundosRestantes / 86400);
+            const horas = Math.floor((segundosRestantes % 86400) / 3600);
+            const minutos = Math.floor((segundosRestantes % 3600) / 60);
+            
+            comederoTexto.innerText = `Dura ${dias}d ${horas}h ${minutos}m`;
+            comederoTexto.style.color = 'var(--text-muted)';
+            comederoCantidad.innerText = "LLENO";
+            comederoCantidad.style.color = "var(--text-dark)";
+        } else {
+            comederoTexto.innerText = "¡CONEJOS HAMBRIENTOS!";
+            comederoTexto.style.color = "red";
+            comederoCantidad.innerText = "VACÍO";
+            comederoCantidad.style.color = "red";
+        }
+    }
+}
+
+function mostrarNotificacion(mensaje) {
+    // Si estás dentro de Telegram, usa su alerta nativa, si no, usa el alert de navegador
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+        window.Telegram.WebApp.showAlert(mensaje);
+    } else {
+        alert(mensaje);
+    }
+}
+
+// Procesar ganancia offline al iniciar la app
+window.onload = function() {
+    const ahora = Date.now();
+    const tiempoDesconectadoSegundos = (ahora - ultimoTick) / 1000;
+    
+    // Si tenía comida mientras estuvo fuera
+    if (state.lechugaFin > ultimoTick) {
+        const segundosEfectivos = Math.min(
+            tiempoDesconectadoSegundos, 
+            (state.lechugaFin - ultimoTick) / 1000
+        );
+        
+        let produccionDiariaTotal = 
+            (state.conejos.blanco * state.tasas.blanco) +
+            (state.conejos.manchado * state.tasas.manchado) +
+            (state.conejos.marron * state.tasas.marron) +
+            (state.conejos.rey * state.tasas.rey);
+
+        const gananciaAusente = (produccionDiariaTotal / 86400) * segundosEfectivos;
+        
+        if (gananciaAusente > 0) {
+            state.zanahorias += gananciaAusente;
+            state.guardar();
+            setTimeout(() => {
+                mostrarNotificacion(`Tus conejos recolectaron ${Math.floor(gananciaAusente).toLocaleString()} zanahorias mientras no estabas. ¡Buen trabajo!`);
+            }, 500);
+        }
+    }
+    
+    ultimoTick = ahora;
+    actualizarDOM(state.lechugaFin > ahora, ahora);
+};
