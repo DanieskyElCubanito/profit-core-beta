@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Crypto Farm - Conejos & Tréboles</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
+        /* ==========================================
+           1. VARIABLES Y RESET
+           ========================================== */
         :root {
             --bg-color: #f4f1e1;
             --header-bg: #4db6ac;
@@ -24,6 +27,29 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-color); color: var(--text-dark); padding-bottom: 90px; }
 
+        /* ==========================================
+           2. ESTILOS PREMIUM (Animaciones e Imágenes)
+           ========================================== */
+        .premium-icon { object-fit: contain; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15)); transition: transform 0.3s ease; }
+        .premium-icon:hover { transform: scale(1.05) translateY(-2px); }
+        .icon-sm { width: 18px; height: 18px; }
+        .icon-md { width: 32px; height: 32px; }
+        .icon-lg { width: 48px; height: 48px; }
+        .icon-xl { width: 110px; height: 110px; }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .rabbit-hero { animation: float 4s ease-in-out infinite; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.25)); }
+        
+        .premium-basket { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.8); }
+        .emoji-3d { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); } /* Para darle volumen a los emojis de la tienda */
+
+        /* ==========================================
+           3. UI GENERAL
+           ========================================== */
         .header { background-color: var(--header-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
@@ -46,41 +72,49 @@
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .farm-scene { background: linear-gradient(to bottom, #81d4fa 60%, #aed581 40%); border-radius: 20px; height: 180px; position: relative; margin-bottom: 15px; overflow: hidden; border: 3px solid white; box-shadow: 0 6px 15px rgba(0,0,0,0.08); }
+        /* ==========================================
+           4. GRANJA
+           ========================================== */
+        .farm-scene { background: linear-gradient(135deg, #4fc3f7 0%, #81c784 100%); border-radius: 20px; height: 160px; position: relative; margin-bottom: 15px; overflow: hidden; border: 3px solid white; box-shadow: 0 12px 25px rgba(129, 199, 132, 0.3); }
         .sun { position: absolute; top: 15px; right: 20px; width: 40px; height: 40px; background: #ffd54f; border-radius: 50%; box-shadow: 0 0 25px #ffca28; }
         .barn { position: absolute; bottom: 20px; right: 15px; width: 80px; height: 80px; background: #e53935; border-radius: 5px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
         .barn::before { content: ''; position: absolute; top: -20px; left: -10px; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 20px solid #c62828; }
-        .rabbit-sprite { position: absolute; bottom: 15px; left: 20px; font-size: 3.5rem; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); }
-        
-        .basket-info { position: absolute; top: 10px; left: 10px; background: white; padding: 8px 12px; border-radius: 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .farm-bg-glow { position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.2); border-radius: 50%; filter: blur(20px); }
 
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
         .stat-box { background: white; padding: 15px 10px; border-radius: 15px; text-align: center; box-shadow: 0 6px 15px rgba(0,0,0,0.04); border: 1px solid var(--border-light); }
-        .stat-box span { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
+        .stat-box span { display: flex; justify-content: center; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
         .stat-box strong { font-size: 1.1rem; color: var(--text-dark); font-weight: 900; }
 
         .btn-main { background: var(--btn-green); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: 900; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3); }
         .btn-main:active { transform: scale(0.97); }
-        .btn-sell { background: var(--accent-green); color: var(--btn-green-hover); border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(165, 214, 167, 0.4); cursor: pointer; transition: 0.2s;}
+        .btn-sell { background: var(--accent-green); color: var(--btn-green-hover); border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(165, 214, 167, 0.4); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .btn-sell:active { transform: scale(0.97); }
-        .btn-outline { background: white; color: var(--btn-green); border: 2px solid var(--btn-green); padding: 10px; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; }
+        .btn-outline { background: white; color: var(--btn-green); border: 2px solid var(--btn-green); padding: 10px; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; transition: 0.2s;}
 
         .day-box { min-width: 65px; background: #f9f9f9; padding: 12px 10px; border-radius: 12px; text-align: center; font-size: 0.7rem; border: 2px solid var(--border-light); color: var(--text-muted); transition: 0.3s; }
         .day-box strong { display: block; font-size: 0.9rem; color: var(--text-dark); margin-top: 5px; }
         .day-box.active { background: #e0f2f1; border-color: var(--btn-green); color: var(--btn-green); box-shadow: 0 4px 10px rgba(38, 166, 154, 0.15); }
         .day-box.active strong { color: var(--btn-green); }
 
+        /* ==========================================
+           5. TIENDA
+           ========================================== */
         .toggle-group { display: flex; gap: 10px; margin-bottom: 15px; }
         .toggle-btn { flex: 1; padding: 14px; border-radius: 12px; border: 2px solid var(--border-light); font-weight: 900; cursor: pointer; background: white; color: var(--text-muted); transition: 0.3s; }
         .toggle-btn.active { background: var(--btn-green); color: white; border-color: var(--btn-green); box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3); }
 
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .shop-item { background: white; border-radius: 20px; padding: 15px; text-align: center; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid var(--border-light); }
+        .shop-item { background: white; border-radius: 20px; padding: 15px; text-align: center; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid var(--border-light); transition: 0.3s;}
+        .shop-item:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); }
         .roi-badge { position: absolute; top: 10px; right: 10px; background: #e8f5e9; color: var(--btn-green); padding: 4px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; }
-        .item-icon { font-size: 4rem; margin: 20px 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
+        .item-icon { font-size: 4rem; margin: 20px 0; }
         
-        .food-item { display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.04); border: 1px solid var(--border-light); }
+        .food-item { display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.04); border: 1px solid var(--border-light); transition: 0.3s;}
 
+        /* ==========================================
+           6. WALLET Y AMIGOS
+           ========================================== */
         .wallet-header { background: linear-gradient(135deg, var(--btn-green), var(--btn-green-hover)); color: white; padding: 30px 20px; border-radius: 20px; text-align: center; margin-bottom: -20px; position: relative; z-index: 1; box-shadow: 0 10px 20px rgba(38, 166, 154, 0.2); }
         .wallet-header h2 { font-size: 2.8rem; font-weight: 900; margin: 5px 0; letter-spacing: -1px; }
         .wallet-tabs { display: flex; background: white; padding: 35px 15px 15px; border-radius: 0 0 20px 20px; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid var(--border-light); border-top: none; }
@@ -119,51 +153,68 @@
     <!-- 1. VISTA: GRANJA -->
     <div id="granja" class="view active">
         
-        <!-- Cesta de Tréboles -->
-        <div class="card" style="background: linear-gradient(135deg, #81d4fa, #aed581); position: relative; overflow: hidden; height: 140px; padding: 0; border: none;">
-            <div style="position: absolute; top: 15px; left: 15px; background: white; padding: 10px 15px; border-radius: 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.15); z-index: 2;">
-                <span style="font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">🍀</span>
+        <!-- Escena Premium Granja -->
+        <div class="farm-scene">
+            <!-- Cesta Premium Flotante -->
+            <div class="premium-basket" style="position: absolute; top: 15px; left: 15px; padding: 12px 18px; border-radius: 16px; display: flex; align-items: center; gap: 12px; z-index: 2;">
+                <img src="https://cdn-icons-png.flaticon.com/512/1030/1030040.png" alt="Trébol" class="premium-icon icon-lg">
                 <div>
-                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">En la cesta</div>
-                    <div id="cesta-cantidad" style="font-weight: 900; font-size: 1.4rem; line-height: 1;">0</div>
-                    <div id="cesta-usd" style="font-size: 0.75rem; color: var(--btn-green); font-weight: 900;">≈ $0.0000</div>
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">En la cesta</div>
+                    <div id="cesta-cantidad" style="font-weight: 900; font-size: 1.5rem; line-height: 1.1; color: var(--text-dark);">0</div>
+                    <div id="cesta-usd" style="font-size: 0.8rem; color: var(--btn-green); font-weight: 900;">≈ $0.0000</div>
                 </div>
             </div>
-            <div style="position: absolute; bottom: -15px; right: 10px; font-size: 7rem; opacity: 0.9; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));">🐇</div>
+            
+            <div class="farm-bg-glow"></div>
+            <!-- Conejo Hero 3D -->
+            <img src="https://cdn-icons-png.flaticon.com/512/2809/2809930.png" alt="Conejo" class="premium-icon icon-xl rabbit-hero" style="position: absolute; bottom: 10px; right: 15px; z-index: 1;">
         </div>
 
+        <!-- Botón Vender Premium -->
         <button class="btn-sell" onclick="window.gameAPI.venderZanahorias()">
-            VENDER TRÉBOLES<br>
-            <span id="btn-vender-text" style="font-size: 0.8rem; font-weight: 800;">🍀 0 → +$0.0000</span>
+            VENDER TRÉBOLES
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/1030/1030040.png" alt="Trébol" class="icon-sm">
+                <span id="btn-vender-text" style="font-size: 0.85rem; font-weight: 800; color: var(--btn-green-hover);">0 → +$0.0000</span>
+            </div>
         </button>
-        <div style="text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-top: -5px; margin-bottom: 15px;">Vende desde 1,000 tréboles de la suerte</div>
+        <div style="text-align: center; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-top: -5px; margin-bottom: 20px;">Vende desde 1,000 tréboles de la suerte</div>
 
         <!-- Estadísticas -->
         <div class="stats-grid">
-            <div class="stat-box"><span>Tréboles / día</span><strong id="stat-prod">1,000</strong></div>
+            <div class="stat-box">
+                <span><img src="https://cdn-icons-png.flaticon.com/512/1030/1030040.png" class="icon-sm"> Tréboles / día</span>
+                <strong id="stat-prod">1,000</strong>
+            </div>
             <div class="stat-box"><span>Ganancia / día</span><strong id="stat-ganancia">$0.01</strong></div>
-            <div class="stat-box"><span>Conejos</span><strong id="stat-conejos">1</strong></div>
+            <div class="stat-box"><span>Conejos activos</span><strong id="stat-conejos">1</strong></div>
         </div>
 
-        <!-- Comedero de Zanahorias -->
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- Comedero Premium -->
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to right, #ffffff, #fffdf8);">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: #fff3e0; padding: 12px; border-radius: 12px; font-size: 1.6rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">🥕</div>
+                <div style="background: #fff8e1; padding: 12px; border-radius: 14px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);">
+                    <img src="https://cdn-icons-png.flaticon.com/512/755/755106.png" alt="Zanahoria" class="premium-icon icon-md">
+                </div>
                 <div>
-                    <h3 style="font-size: 0.9rem; font-weight: 900; text-transform: uppercase;">Comedero</h3>
-                    <div id="comedero-cantidad" style="font-weight: 900; font-size: 1.2rem;">6,449</div>
-                    <div id="comedero-tiempo" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Dura 6d 10h</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">Comedero</h3>
+                    <div id="comedero-cantidad" style="font-weight: 900; font-size: 1.25rem; color: #f57c00;">6,449</div>
+                    <div id="comedero-tiempo" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800;">Dura 6d 10h</div>
                 </div>
             </div>
-            <button class="btn-main" style="width: auto; padding: 12px 16px; font-size: 0.8rem;" onclick="window.gameAPI.switchShopTab('alimento')">Comprar</button>
+            <button class="btn-main" style="width: auto; padding: 12px 18px; font-size: 0.85rem;" onclick="window.gameAPI.switchShopTab('alimento')">Comprar</button>
         </div>
 
         <!-- Bono Diario -->
-        <div class="card">
-            <h3 style="font-size: 1rem; font-weight: 900;">Zanahoria Diaria</h3>
-            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; margin-bottom: 15px;">Vuelve cada día: la racha crece</p>
+        <div class="card" style="position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; right: -20px; opacity: 0.05; transform: rotate(15deg);">
+                <img src="https://cdn-icons-png.flaticon.com/512/755/755106.png" style="width: 150px; height: 150px;">
+            </div>
             
-            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; scrollbar-width: none;">
+            <h3 style="font-size: 1.1rem; font-weight: 900; position: relative; z-index: 1;">Zanahoria Diaria</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 18px; position: relative; z-index: 1;">Vuelve cada día: la racha crece</p>
+
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px; scrollbar-width: none; position: relative; z-index: 1;">
                 <div class="day-box active"><span>Día 1</span><strong>2,000</strong></div>
                 <div class="day-box"><span>Día 2</span><strong>3,000</strong></div>
                 <div class="day-box"><span>Día 3</span><strong>4,000</strong></div>
@@ -172,9 +223,9 @@
                 <div class="day-box"><span>Día 6</span><strong>8,000</strong></div>
                 <div class="day-box"><span>Día 7</span><strong>12K</strong></div>
             </div>
-            
-            <button id="btn-reclamar-bono" class="btn-main" style="background: #f0f0f0; color: #9e9e9e; box-shadow: none;" disabled>
-                Siguiente en 06:49:22
+
+            <button id="btn-reclamar-bono" class="btn-main" style="background: #f1f5f9; color: #94a3b8; box-shadow: none; border: 1px solid #e2e8f0; position: relative; z-index: 1;" disabled>
+                <i class="fa-regular fa-clock" style="margin-right: 6px;"></i> Siguiente en 06:49:22
             </button>
         </div>
     </div>
@@ -189,89 +240,89 @@
         <!-- Sub-vista Conejos -->
         <div id="shop-conejos" style="display: block;">
             <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Cada conejo busca tréboles todos los días mientras tenga zanahorias. Puedes comprar el mismo una y otra vez.</p>
-            
+
             <div class="shop-grid">
-                <!-- Se mantienen los 12 conejos con el emoji de trébol 🍀 -->
+                <!-- Se usan los emojis pero con la clase emoji-3d para que resalten como render premium -->
                 <div class="shop-item">
                     <div class="roi-badge">6.7%/día</div>
-                    <div class="item-icon">🐰</div>
+                    <div class="item-icon emoji-3d">🐰</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejito Bebé</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 1,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.01/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl1', 0.15)">$0.15</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">8%/día</div>
-                    <div class="item-icon">🐇</div>
+                    <div class="item-icon emoji-3d">🐇</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Manchado</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 8,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.08/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl2', 1.00)">$1.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">8.4%/día</div>
-                    <div class="item-icon">🐰🤎</div>
+                    <div class="item-icon emoji-3d">🐰🤎</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Marrón</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 21,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.21/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl3', 2.50)">$2.50</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">8.8%/día</div>
-                    <div class="item-icon">🐰☁️</div>
+                    <div class="item-icon emoji-3d">🐰☁️</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Angora</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 44,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.44/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl4', 5.00)">$5.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">9.2%/día</div>
-                    <div class="item-icon">🐰🔴</div>
+                    <div class="item-icon emoji-3d">🐰🔴</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Rojizo</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 92,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.92/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl5', 10.00)">$10.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">9.6%/día</div>
-                    <div class="item-icon">🐰🪨</div>
+                    <div class="item-icon emoji-3d">🐰🪨</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Gris</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 240,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $2.40/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl6', 25.00)">$25.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">10%/día</div>
-                    <div class="item-icon">🐰👑</div>
+                    <div class="item-icon emoji-3d">🐰👑</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Coneja Reina</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 500,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $5.00/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl7', 50.00)">$50.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">10.4%/día</div>
-                    <div class="item-icon">🐰🥉</div>
+                    <div class="item-icon emoji-3d">🐰🥉</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Cobrizo</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 1.04M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $10.40/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl8', 100.00)">$100.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">10.8%/día</div>
-                    <div class="item-icon">🐰🎩</div>
+                    <div class="item-icon emoji-3d">🐰🎩</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Crestado</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 2.7M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $27.00/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl9', 250.00)">$250.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">11.2%/día</div>
-                    <div class="item-icon">🐰💎</div>
+                    <div class="item-icon emoji-3d">🐰💎</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Diamante</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 5.6M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $56.00/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl10', 500.00)">$500.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">11.6%/día</div>
-                    <div class="item-icon">🐰🔥</div>
+                    <div class="item-icon emoji-3d">🐰🔥</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Imperial</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 11.6M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $116.00/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl11', 1000.00)">$1,000.00</button>
                 </div>
                 <div class="shop-item">
                     <div class="roi-badge">12%/día</div>
-                    <div class="item-icon" style="filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));">🐰🏆</div>
+                    <div class="item-icon emoji-3d" style="filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));">🐰🏆</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Dorado</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🍀 30M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $300.00/día</span></p>
                     <button class="btn-main" onclick="window.gameAPI.comprarConejo('lvl12', 2500.00)">$2,500.00</button>
@@ -285,7 +336,9 @@
 
             <div class="food-item">
                 <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: #fff3e0; padding: 15px; border-radius: 15px; font-size: 1.8rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">🥕</div>
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 15px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">
+                        <img src="https://cdn-icons-png.flaticon.com/512/755/755106.png" class="premium-icon icon-md">
+                    </div>
                     <div>
                         <h3 style="font-size: 1rem; font-weight: 900;">Manojo Naranja</h3>
                         <div style="font-size: 0.85rem; font-weight: 800; color: var(--btn-green);">+ 🥕 50,000</div>
@@ -297,22 +350,22 @@
 
             <div class="food-item">
                 <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: #f3e5f5; padding: 15px; border-radius: 15px; font-size: 1.8rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">🧺</div>
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 15px; font-size: 1.8rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);" class="emoji-3d">🧺</div>
                     <div>
-                        <h3 style="font-size: 1rem; font-weight: 900;">Cesta de Zanahorias Moradas</h3>
+                        <h3 style="font-size: 1rem; font-weight: 900;">Cesta de Zanahorias</h3>
                         <div style="font-size: 0.85rem; font-weight: 800; color: #ab47bc;">+ 🥕 300,000</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Alimenta 300d 0h</div>
                     </div>
                 </div>
                 <button class="btn-main" style="width: auto; padding: 12px 24px; background: #ab47bc;" onclick="window.gameAPI.comprarAlimento(0.50, 300)">$0.50</button>
             </div>
-            
+
             <div class="food-item" style="border: 2px solid #ffca28; position: relative;">
                 <div style="position: absolute; top: -10px; left: 15px; background: #ffca28; color: #3e2723; font-size: 0.65rem; font-weight: 900; padding: 2px 8px; border-radius: 6px;">MEJOR OFERTA</div>
                 <div style="display: flex; gap: 15px; align-items: center;">
-                    <div style="background: #fff8e1; padding: 15px; border-radius: 15px; font-size: 1.8rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">🌟</div>
+                    <div style="background: #fff8e1; padding: 15px; border-radius: 15px; font-size: 1.8rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);" class="emoji-3d">🌟</div>
                     <div>
-                        <h3 style="font-size: 1rem; font-weight: 900;">Silo de Zanahorias Doradas</h3>
+                        <h3 style="font-size: 1rem; font-weight: 900;">Silo Dorado</h3>
                         <div style="font-size: 0.85rem; font-weight: 800; color: #f57f17;">+ 🥕 2,000,000</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Alimenta 2,000d 0h</div>
                     </div>
@@ -365,7 +418,10 @@
     <!-- 4. VISTA: AMIGOS -->
     <div id="amigos" class="view">
         <div class="referral-banner">
-            <div style="font-size: 2.5rem; margin-bottom: 10px;">🐰🤝🐰</div>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/2809/2809930.png" class="premium-icon icon-md">
+                <img src="https://cdn-icons-png.flaticon.com/512/1030/1030040.png" class="premium-icon icon-md">
+            </div>
             <h2 style="font-size: 1.3rem; font-weight: 900;">Invita amigos, ganen juntos</h2>
             <p style="font-size: 0.85rem; opacity: 0.9; margin-top: 5px; line-height: 1.4; font-weight: 700;">Ganas una comisión de cada conejo y bolsa de zanahorias que compren, para siempre.</p>
         </div>
@@ -406,7 +462,6 @@
         </div>
     </nav>
 
-    <!-- Funciones simples de Navegación UI -->
     <script>
         function switchTab(tabId, element) {
             document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
