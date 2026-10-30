@@ -1,33 +1,444 @@
-// Función para generar un Hash falso pero realista
-function generarTxID() {
-    return Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypto Farm - Conejos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f4f1e1;
+            --header-bg: #4db6ac;
+            --btn-green: #26a69a;
+            --btn-green-hover: #00897b;
+            --card-bg: #ffffff;
+            --text-dark: #333333;
+            --text-muted: #757575;
+            --accent-green: #a5d6a7;
+        }
 
-async function enviarTRX() {
-    const destino = document.getElementById('address').value;
-    const status = document.getElementById('status');
-    
-    if(!destino || destino.length < 30) {
-        alert("Dirección inválida");
-        return;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    // Paso 1: Estado de firma
-    status.innerHTML = "⏳ Firmando transacción...";
-    await new Promise(r => setTimeout(r, 1500));
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            padding-bottom: 80px;
+        }
 
-    // Paso 2: Estado de envío a red
-    status.innerHTML = "🚀 Transmitiendo a la red Tron...";
-    await new Promise(r => setTimeout(r, 2000));
+        /* HEADER */
+        .header {
+            background-color: var(--header-bg);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-    // Paso 3: Resultado con apariencia técnica
-    const txID = generarTxID();
-    status.innerHTML = `
-        <div style="text-align:left; font-family:monospace; font-size: 12px; background:#f4f4f4; padding:10px;">
-            ✅ <b>Transacción confirmada</b><br>
-            <b>TxID:</b> ${txID.substring(0, 20)}...<br>
-            <b>Estado:</b> Confirmado (Bloque 58,920,103)<br>
-            <b>Comisión pagada:</b> 0.00 TRX (Promoción activa)
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid white;
+        }
+
+        .title-group h1 {
+            font-size: 1.1rem;
+            font-weight: 900;
+        }
+
+        .title-group p {
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+
+        .balance-pill {
+            background: white;
+            color: var(--text-dark);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-add {
+            background: var(--btn-green);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* VIEWS */
+        .view {
+            display: none;
+            padding: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CARDS GENERALES */
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        /* GRANJA - ESCENA PRINCIPAL */
+        .farm-scene {
+            background: linear-gradient(to bottom, #81d4fa 60%, #aed581 40%);
+            border-radius: 20px;
+            height: 180px;
+            position: relative;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 3px solid white;
+        }
+
+        .sun {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: #ffd54f;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #ffca28;
+        }
+
+        .barn {
+            position: absolute;
+            bottom: 20px;
+            right: 15px;
+            width: 80px;
+            height: 80px;
+            background: #e53935;
+            border-radius: 5px;
+        }
+        .barn::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            border-left: 50px solid transparent;
+            border-right: 50px solid transparent;
+            border-bottom: 20px solid #c62828;
+        }
+
+        .rabbit-sprite {
+            position: absolute;
+            bottom: 15px;
+            left: 20px;
+            font-size: 3.5rem;
+        }
+
+        .basket-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* GRID STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-box {
+            background: white;
+            padding: 15px 10px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .stat-box span { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
+        .stat-box strong { font-size: 1.1rem; color: var(--text-dark); font-weight: 900; }
+
+        /* BOTONES */
+        .btn-main {
+            background: var(--btn-green);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 15px;
+            font-weight: 900;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-main:active { transform: scale(0.97); }
+
+        .btn-sell {
+            background: var(--accent-green);
+            color: var(--btn-green-hover);
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 15px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        /* TIENDA GRID */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .shop-item {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        .roi-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e8f5e9;
+            color: var(--btn-green);
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 900;
+        }
+
+        .item-icon {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 700;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--btn-green);
+        }
+
+        .nav-item i { font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="avatar"></div>
+            <div class="title-group">
+                <h1>Crypto Farm 🐰</h1>
+                <p>Los conejos cosechan, tú ganas</p>
+            </div>
         </div>
-    `;
-}
+        <div class="balance-pill">
+            $0.00 <button class="btn-add">+</button>
+        </div>
+    </header>
+
+    <!-- VISTA: GRANJA -->
+    <div id="granja" class="view active">
+        
+        <div class="farm-scene">
+            <div class="sun"></div>
+            <div class="barn"></div>
+            <div class="rabbit-sprite">🐇</div>
+            <div class="basket-info">
+                <span style="font-size: 1.5rem;">🥕</span>
+                <div>
+                    <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 700;">EN LA CESTA</div>
+                    <div style="font-weight: 900; font-size: 1.1rem; line-height: 1;">0</div>
+                    <div style="font-size: 0.65rem; color: var(--btn-green); font-weight: 900;">≈ $0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-sell">
+            VENDER ZANAHORIAS<br>
+            <span style="font-size: 0.8rem; font-weight: 700;">🥕 0 → +$0.00</span>
+        </button>
+        <div style="text-align: center; font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 15px;">Vende desde 1,000 zanahorias</div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span>Zanahorias / día</span>
+                <strong>🥕 1,000</strong>
+            </div>
+            <div class="stat-box">
+                <span>Ganancia / día</span>
+                <strong>$0.01</strong>
+            </div>
+            <div class="stat-box">
+                <span>Conejos</span>
+                <strong>1</strong>
+            </div>
+        </div>
+
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="background: #fff3e0; padding: 10px; border-radius: 12px; font-size: 1.5rem;">🥬</div>
+                <div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">COMEDERO</h3>
+                    <div style="font-weight: 900; font-size: 1.1rem;">4,999</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Dura 4d 23h</div>
+                </div>
+            </div>
+            <button class="btn-main" style="width: auto; padding: 10px 20px;">Comprar lechuga</button>
+        </div>
+    </div>
+
+    <!-- VISTA: TIENDA -->
+    <div id="tienda" class="view">
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button class="btn-main" style="background: white; color: var(--btn-green); border: 2px solid var(--btn-green);">Conejos</button>
+            <button class="btn-main" style="background: transparent; color: var(--text-muted); border: 2px solid transparent;">Lechuga</button>
+        </div>
+        <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
+            Cada conejo cosecha zanahorias todos los días mientras tenga lechuga. Puedes comprar el mismo una y otra vez.
+        </p>
+
+        <div class="shop-grid">
+            <!-- Conejo 1 -->
+            <div class="shop-item">
+                <div class="roi-badge">6.7%/día</div>
+                <div class="item-icon">🐰</div>
+                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejito Blanco</h3>
+                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.01/día</span></p>
+                <button class="btn-main">$0.15</button>
+            </div>
+
+            <!-- Conejo 2 -->
+            <div class="shop-item">
+                <div class="roi-badge">8%/día</div>
+                <div class="item-icon">🐇</div>
+                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Manchado</h3>
+                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 8,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.08/día</span></p>
+                <button class="btn-main">$1.00</button>
+            </div>
+            
+            <!-- Conejo 3 -->
+            <div class="shop-item">
+                <div class="roi-badge">10.4%/día</div>
+                <div class="item-icon">🐰‍❄️</div>
+                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Marrón</h3>
+                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1.04M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $10.40/día</span></p>
+                <button class="btn-main">$100.00</button>
+            </div>
+
+            <!-- Conejo 4 -->
+            <div class="shop-item">
+                <div class="roi-badge">12%/día</div>
+                <div class="item-icon" style="filter: drop-shadow(0 0 10px gold);">🐰👑</div>
+                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Rey</h3>
+                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 30M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $300.00/día</span></p>
+                <button class="btn-main">$2,500.00</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR INFERIOR -->
+    <nav class="navbar">
+        <div class="nav-item active" onclick="switchTab('granja', this)">
+            <i class="fa-solid fa-house"></i>
+            <span>Granja</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tienda', this)">
+            <i class="fa-solid fa-basket-shopping"></i>
+            <span>Tienda</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Wallet</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-user-group"></i>
+            <span>Amigos</span>
+        </div>
+    </nav>
+
+    <script>
+        function switchTab(tabId, element) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            // Quitar clase active de la barra de navegación
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+
+            // Activar la nueva vista y botón
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+    </script>
+</body>
+</html>
