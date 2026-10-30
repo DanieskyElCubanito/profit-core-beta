@@ -16,6 +16,7 @@
             --text-dark: #333333;
             --text-muted: #757575;
             --accent-green: #a5d6a7;
+            --border-light: #e0e0e0;
         }
 
         * {
@@ -46,250 +47,91 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #333;
-            border: 2px solid white;
-        }
-
-        .title-group h1 {
-            font-size: 1.1rem;
-            font-weight: 900;
-        }
-
-        .title-group p {
-            font-size: 0.7rem;
-            opacity: 0.9;
-        }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; border: 2px solid white; }
+        .title-group h1 { font-size: 1.1rem; font-weight: 900; }
+        .title-group p { font-size: 0.7rem; opacity: 0.9; }
 
         .balance-pill {
-            background: white;
-            color: var(--text-dark);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: white; color: var(--text-dark); padding: 5px 12px;
+            border-radius: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
         .btn-add {
-            background: var(--btn-green);
-            color: white;
-            border: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            font-weight: bold;
-            cursor: pointer;
+            background: var(--btn-green); color: white; border: none; width: 24px; height: 24px;
+            border-radius: 50%; font-weight: bold; cursor: pointer;
         }
 
         /* VIEWS */
-        .view {
-            display: none;
-            padding: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-        .view.active {
-            display: block;
-        }
+        .view { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* CARDS */
+        .card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 
-        /* CARDS GENERALES */
-        .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        }
-
-        /* GRANJA - ESCENA PRINCIPAL */
+        /* GRANJA */
         .farm-scene {
             background: linear-gradient(to bottom, #81d4fa 60%, #aed581 40%);
-            border-radius: 20px;
-            height: 180px;
-            position: relative;
-            margin-bottom: 15px;
-            overflow: hidden;
-            border: 3px solid white;
+            border-radius: 20px; height: 180px; position: relative; margin-bottom: 15px;
+            overflow: hidden; border: 3px solid white;
         }
-
-        .sun {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: #ffd54f;
-            border-radius: 50%;
-            box-shadow: 0 0 20px #ffca28;
-        }
-
-        .barn {
-            position: absolute;
-            bottom: 20px;
-            right: 15px;
-            width: 80px;
-            height: 80px;
-            background: #e53935;
-            border-radius: 5px;
-        }
-        .barn::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: -10px;
-            border-left: 50px solid transparent;
-            border-right: 50px solid transparent;
-            border-bottom: 20px solid #c62828;
-        }
-
-        .rabbit-sprite {
-            position: absolute;
-            bottom: 15px;
-            left: 20px;
-            font-size: 3.5rem;
-        }
-
+        .sun { position: absolute; top: 15px; right: 20px; width: 40px; height: 40px; background: #ffd54f; border-radius: 50%; box-shadow: 0 0 20px #ffca28; }
+        .barn { position: absolute; bottom: 20px; right: 15px; width: 80px; height: 80px; background: #e53935; border-radius: 5px; }
+        .barn::before { content: ''; position: absolute; top: -20px; left: -10px; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 20px solid #c62828; }
+        .rabbit-sprite { position: absolute; bottom: 15px; left: 20px; font-size: 3.5rem; }
+        
         .basket-info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: absolute; top: 10px; left: 10px; background: white; padding: 8px 12px;
+            border-radius: 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* GRID STATS */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .stat-box {
-            background: white;
-            padding: 15px 10px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .stat-box { background: white; padding: 15px 10px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .stat-box span { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
         .stat-box strong { font-size: 1.1rem; color: var(--text-dark); font-weight: 900; }
 
         /* BOTONES */
-        .btn-main {
-            background: var(--btn-green);
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 15px;
-            font-weight: 900;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        .btn-main { background: var(--btn-green); color: white; border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: 900; font-size: 1rem; cursor: pointer; transition: 0.2s; }
         .btn-main:active { transform: scale(0.97); }
+        .btn-sell { background: var(--accent-green); color: var(--btn-green-hover); border: none; width: 100%; padding: 16px; border-radius: 15px; font-weight: 900; font-size: 1.1rem; margin-bottom: 15px; }
+        .btn-outline { background: white; color: var(--btn-green); border: 2px solid var(--btn-green); padding: 10px; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; }
 
-        .btn-sell {
-            background: var(--accent-green);
-            color: var(--btn-green-hover);
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 15px;
-            font-weight: 900;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-        }
+        /* TIENDA (LECHUGA & CONEJOS) */
+        .toggle-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .toggle-btn { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid transparent; font-weight: 900; cursor: pointer; background: transparent; color: var(--text-muted); }
+        .toggle-btn.active { background: white; color: var(--btn-green); border-color: var(--btn-green); }
 
-        /* TIENDA GRID */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .shop-item { background: white; border-radius: 20px; padding: 15px; text-align: center; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .roi-badge { position: absolute; top: 10px; right: 10px; background: #e8f5e9; color: var(--btn-green); padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; }
+        .item-icon { font-size: 4rem; margin: 20px 0; }
 
-        .shop-item {
-            background: white;
-            border-radius: 20px;
-            padding: 15px;
-            text-align: center;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        }
+        .food-item { display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        
+        /* WALLET */
+        .wallet-header { background: var(--btn-green); color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: -20px; position: relative; z-index: 1; }
+        .wallet-header h2 { font-size: 2.5rem; font-weight: 900; margin: 5px 0; }
+        .wallet-tabs { display: flex; background: white; padding: 25px 15px 15px; border-radius: 0 0 20px 20px; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .input-group { background: #f9f9f9; border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .input-group input { border: none; background: transparent; outline: none; font-weight: 900; font-size: 1rem; width: 100%; color: var(--text-dark); }
+        
+        /* AMIGOS */
+        .referral-banner { background: var(--btn-green); color: white; padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 15px; }
+        .referral-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .ref-box { background: white; padding: 15px 5px; border-radius: 12px; text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .ref-box strong { display: block; color: var(--btn-green); font-size: 1rem; font-weight: 900; margin-bottom: 5px; }
 
-        .roi-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #e8f5e9;
-            color: var(--btn-green);
-            padding: 3px 8px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 900;
-        }
-
-        .item-icon {
-            font-size: 4rem;
-            margin: 20px 0;
-        }
-
-        /* NAVBAR */
-        .navbar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid #eee;
-            z-index: 1000;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 700;
-            gap: 5px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: var(--btn-green);
-        }
-
+        /* NAVBAR INFERIOR */
+        .navbar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); text-decoration: none; font-size: 0.75rem; font-weight: 700; gap: 5px; cursor: pointer; }
+        .nav-item.active { color: var(--btn-green); }
         .nav-item i { font-size: 1.3rem; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
     <header class="header">
         <div class="header-left">
             <div class="avatar"></div>
@@ -303,9 +145,8 @@
         </div>
     </header>
 
-    <!-- VISTA: GRANJA -->
+    <!-- 1. VISTA: GRANJA -->
     <div id="granja" class="view active">
-        
         <div class="farm-scene">
             <div class="sun"></div>
             <div class="barn"></div>
@@ -327,18 +168,9 @@
         <div style="text-align: center; font-size: 0.75rem; font-weight: 700; margin-top: -5px; margin-bottom: 15px;">Vende desde 1,000 zanahorias</div>
 
         <div class="stats-grid">
-            <div class="stat-box">
-                <span>Zanahorias / día</span>
-                <strong>🥕 1,000</strong>
-            </div>
-            <div class="stat-box">
-                <span>Ganancia / día</span>
-                <strong>$0.01</strong>
-            </div>
-            <div class="stat-box">
-                <span>Conejos</span>
-                <strong>1</strong>
-            </div>
+            <div class="stat-box"><span>Zanahorias / día</span><strong>🥕 1,000</strong></div>
+            <div class="stat-box"><span>Ganancia / día</span><strong>$0.01</strong></div>
+            <div class="stat-box"><span>Conejos</span><strong>1</strong></div>
         </div>
 
         <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
@@ -350,58 +182,156 @@
                     <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Dura 4d 23h</div>
                 </div>
             </div>
-            <button class="btn-main" style="width: auto; padding: 10px 20px;">Comprar lechuga</button>
+            <button class="btn-main" style="width: auto; padding: 10px 20px;" onclick="switchShopTab('lechuga')">Comprar lechuga</button>
         </div>
     </div>
 
-    <!-- VISTA: TIENDA -->
+    <!-- 2. VISTA: TIENDA -->
     <div id="tienda" class="view">
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <button class="btn-main" style="background: white; color: var(--btn-green); border: 2px solid var(--btn-green);">Conejos</button>
-            <button class="btn-main" style="background: transparent; color: var(--text-muted); border: 2px solid transparent;">Lechuga</button>
+        <div class="toggle-group">
+            <button class="toggle-btn active" id="btn-conejos" onclick="toggleShop('conejos')">Conejos</button>
+            <button class="toggle-btn" id="btn-lechuga" onclick="toggleShop('lechuga')">Lechuga</button>
         </div>
-        <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
-            Cada conejo cosecha zanahorias todos los días mientras tenga lechuga. Puedes comprar el mismo una y otra vez.
-        </p>
 
-        <div class="shop-grid">
-            <!-- Conejo 1 -->
-            <div class="shop-item">
-                <div class="roi-badge">6.7%/día</div>
-                <div class="item-icon">🐰</div>
-                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejito Blanco</h3>
-                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.01/día</span></p>
-                <button class="btn-main">$0.15</button>
+        <!-- Sub-vista Conejos -->
+        <div id="shop-conejos" style="display: block;">
+            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px;">Cada conejo cosecha zanahorias mientras tenga lechuga. Puedes comprar el mismo una y otra vez.</p>
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <div class="roi-badge">6.7%/día</div>
+                    <div class="item-icon">🐰</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejito Blanco</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.01/día</span></p>
+                    <button class="btn-main">$0.15</button>
+                </div>
+                <div class="shop-item">
+                    <div class="roi-badge">8%/día</div>
+                    <div class="item-icon">🐇</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Manchado</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 8,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.08/día</span></p>
+                    <button class="btn-main">$1.00</button>
+                </div>
             </div>
+        </div>
 
-            <!-- Conejo 2 -->
-            <div class="shop-item">
-                <div class="roi-badge">8%/día</div>
-                <div class="item-icon">🐇</div>
-                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Manchado</h3>
-                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 8,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.08/día</span></p>
-                <button class="btn-main">$1.00</button>
-            </div>
+        <!-- Sub-vista Lechuga (Alimento) -->
+        <div id="shop-lechuga" style="display: none;">
+            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px;">Los conejos comen lechuga mientras cosechan. Sin lechuga no hay zanahorias.</p>
             
-            <!-- Conejo 3 -->
-            <div class="shop-item">
-                <div class="roi-badge">10.4%/día</div>
-                <div class="item-icon">🐰‍❄️</div>
-                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Marrón</h3>
-                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1.04M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $10.40/día</span></p>
-                <button class="btn-main">$100.00</button>
+            <div class="food-item">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 12px; font-size: 1.8rem;">🥬</div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 900;">Bolsa de Lechuga</h3>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">+ 🥬 50,000</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Alimenta 50d 0h</div>
+                    </div>
+                </div>
+                <button class="btn-main" style="width: auto; padding: 10px 20px;">$0.10</button>
             </div>
 
-            <!-- Conejo 4 -->
-            <div class="shop-item">
-                <div class="roi-badge">12%/día</div>
-                <div class="item-icon" style="filter: drop-shadow(0 0 10px gold);">🐰👑</div>
-                <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Rey</h3>
-                <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 30M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $300.00/día</span></p>
-                <button class="btn-main">$2,500.00</button>
+            <div class="food-item">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 12px; font-size: 1.8rem;">🧺</div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 900;">Cesta de Lechuga</h3>
+                        <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">+ 🥬 300,000</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Alimenta 300d 0h</div>
+                    </div>
+                </div>
+                <button class="btn-main" style="width: auto; padding: 10px 20px;">$0.50</button>
             </div>
         </div>
+    </div>
+
+    <!-- 3. VISTA: WALLET -->
+    <div id="wallet" class="view">
+        <div class="wallet-header">
+            <div style="font-size: 0.8rem; font-weight: 700; opacity: 0.9;">SALDO</div>
+            <h2>$0.00</h2>
+            <div style="font-size: 0.8rem; font-weight: 700; opacity: 0.9;">Retirable: $0.00</div>
+        </div>
+        <div class="wallet-tabs">
+            <button class="btn-outline" style="background: white; color: var(--btn-green); border-color: var(--btn-green);">Recargar</button>
+            <button class="btn-outline" style="background: transparent; color: var(--text-muted); border-color: transparent;">Retirar</button>
+        </div>
+
+        <div class="card" style="margin-top: 15px;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px;">MONEDA</div>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button class="btn-outline" style="padding: 8px;">💎 TON</button>
+                <button class="btn-outline" style="padding: 8px; border-color: var(--border-light); color: var(--text-muted);">💵 USDT</button>
+                <button class="btn-outline" style="padding: 8px; border-color: var(--border-light); color: var(--text-muted);">🔴 TRX</button>
+            </div>
+
+            <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px;">TU DIRECCIÓN TON</div>
+            <div class="input-group">
+                <input type="text" placeholder="Dirección de wallet TON">
+                <i class="fa-solid fa-paste" style="color: var(--btn-green); cursor: pointer;"></i>
+            </div>
+
+            <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px;">IMPORTE (USD)</div>
+            <div class="input-group">
+                <span style="font-weight: 900; margin-right: 5px;">$</span>
+                <input type="number" placeholder="0.01">
+                <span style="color: var(--btn-green); font-weight: 900; font-size: 0.8rem; cursor: pointer;">MÁX.</span>
+            </div>
+
+            <button class="btn-main">Retirar</button>
+            <p style="font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: 15px; line-height: 1.5;">
+                Solo se puede retirar lo que ganaron tus zanahorias. Los regalos, recargas y ganancias de amigos son para tu granja.
+            </p>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h3 style="font-size: 1rem; font-weight: 900; margin-bottom: 15px;">Historial</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 700;">Aún no hay nada aquí</p>
+        </div>
+    </div>
+
+    <!-- 4. VISTA: AMIGOS -->
+    <div id="amigos" class="view">
+        <div class="referral-banner">
+            <div style="font-size: 2rem; margin-bottom: 10px;">🐰🤝🐰</div>
+            <h2 style="font-size: 1.2rem; font-weight: 900;">Invita amigos, ganen juntos</h2>
+            <p style="font-size: 0.8rem; opacity: 0.9; margin-top: 5px;">Ganas una comisión de cada conejo y bolsa de lechuga que compren, para siempre.</p>
+        </div>
+
+        <div class="referral-grid">
+            <div class="ref-box"><strong>10%</strong> de cada conejo que compren</div>
+            <div class="ref-box"><strong>10%</strong> de cada lechuga que compren</div>
+            <div class="ref-box"><strong>$0.01</strong> al comprar su primer conejo</div>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase;">Tu enlace de invitación</div>
+            <div class="input-group" style="background: white;">
+                <input type="text" readonly value="https://t.me/CryptoFarmBot?start=123" style="font-size: 0.8rem; color: var(--text-muted);">
+                <i class="fa-solid fa-copy" style="color: var(--btn-green); cursor: pointer; padding: 5px;"></i>
+            </div>
+            <button class="btn-main">Invitar amigos</button>
+        </div>
+
+        <div class="card card-row">
+            <div>
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Monedero de amigos</div>
+                <div style="font-size: 1.5rem; font-weight: 900;">$0.00</div>
+            </div>
+            <button class="btn-outline" style="width: auto; padding: 8px 20px; background: #f5f5f5; color: var(--text-muted); border-color: transparent;">Cobrar</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="card" style="margin-bottom: 0; padding: 15px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">Amigos invitados</div>
+                <div style="font-size: 1.2rem; font-weight: 900;">0</div>
+            </div>
+            <div class="card" style="margin-bottom: 0; padding: 15px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">Ganado con amigos</div>
+                <div style="font-size: 1.2rem; font-weight: 900;">$0.00</div>
+            </div>
+        </div>
+
+        <p style="text-align: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Las cuentas falsas se detectan y nunca se pagan.</p>
     </div>
 
     <!-- NAVBAR INFERIOR -->
@@ -414,11 +344,11 @@
             <i class="fa-solid fa-basket-shopping"></i>
             <span>Tienda</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" onclick="switchTab('wallet', this)">
             <i class="fa-solid fa-wallet"></i>
             <span>Wallet</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" onclick="switchTab('amigos', this)">
             <i class="fa-solid fa-user-group"></i>
             <span>Amigos</span>
         </div>
@@ -426,18 +356,27 @@
 
     <script>
         function switchTab(tabId, element) {
-            // Ocultar todas las vistas
-            document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('active');
-            });
-            // Quitar clase active de la barra de navegación
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-
-            // Activar la nueva vista y botón
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
+        }
+
+        function toggleShop(type) {
+            document.getElementById('btn-conejos').classList.remove('active');
+            document.getElementById('btn-lechuga').classList.remove('active');
+            document.getElementById('shop-conejos').style.display = 'none';
+            document.getElementById('shop-lechuga').style.display = 'none';
+
+            document.getElementById(`btn-${type}`).classList.add('active');
+            document.getElementById(`shop-${type}`).style.display = 'block';
+        }
+
+        // Función para saltar directo a Lechuga desde el botón de la Granja
+        function switchShopTab(type) {
+            const tiendaNav = document.querySelectorAll('.nav-item')[1];
+            switchTab('tienda', tiendaNav);
+            toggleShop(type);
         }
     </script>
 </body>
