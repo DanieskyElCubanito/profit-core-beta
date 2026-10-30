@@ -1,13 +1,48 @@
 import { state } from './state/appState.js';
 import { updateDashboard } from './components/Dashboard.js';
 import { renderHistory } from './components/HistoryList.js';
-import { requestSecureDeposit, verifyAdminStatus } from './services/apiService.js'; 
 
 let paymentTimerInterval = null;
 let isGeneratingWallet = false;
 
 // ==========================================
-// 1. MOTOR DE MINERÍA PASIVA (Cloud Mining)
+// 1. CONEXIÓN AL BACKEND (VERCEL / SUPABASE)
+// ==========================================
+async function syncUserData(initData) {
+    try {
+        const response = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            // Actualizamos el estado con los datos reales de la base de datos
+            state.totalEarnedUSD = data.balance || 0;
+            state.totalInvestedUSDT = data.invested || 0;
+            state.accumulatedMining = data.accumulated || 0;
+            state.canClaimDaily = data.canClaimDaily !== false;
+            updateDashboard();
+        }
+    } catch (error) {
+        console.error("Error sincronizando con Supabase:", error);
+    }
+}
+
+async function verifyAdminStatus(initData) {
+    try {
+        const urlParams = new URLSearchParams(initData);
+        const userString = urlParams.get('user');
+        if (!userString) return false;
+        const user = JSON.parse(decodeURIComponent(userString));
+        return user.id === 8968109534; // Tu ID de operador maestro
+    } catch (error) {
+        return false;
+    }
+}
+
+// ==========================================
+// 2. MOTOR DE MINERÍA PASIVA (Cloud Mining)
 // ==========================================
 export function startMiningEngine() {
     setInterval(() => {
@@ -19,10 +54,7 @@ export function startMiningEngine() {
         const speedEl = document.getElementById('mining-speed');
         
         if (displayHash && state.totalInvestedUSDT > 0) {
-            // Mostramos cómo crecen las fracciones minadas en tiempo real
             displayHash.innerText = state.accumulatedMining.toFixed(6);
-            
-            // Calculamos la potencia visual en GH/s
             if (speedEl) {
                 const currentGHS = Math.floor(state.totalInvestedUSDT * 1000);
                 speedEl.innerHTML = `<i class="fa-solid fa-bolt" style="color: #00f0ff;"></i> ${currentGHS.toLocaleString()} GH/s Activos`;
@@ -33,7 +65,7 @@ export function startMiningEngine() {
 }
 
 // ==========================================
-// 2. RECOLECCIÓN DE MINERÍA Y MISIONES
+// 3. RECOLECCIÓN DE MINERÍA Y MISIONES
 // ==========================================
 export function claimMining() {
     if (state.accumulatedMining <= 0) {
@@ -41,12 +73,10 @@ export function claimMining() {
         return;
     }
 
-    // Pasamos lo minado al balance principal
     state.totalEarnedUSD += state.accumulatedMining;
-    state.accumulatedMining = 0; // Reiniciamos el contador de minería
+    state.accumulatedMining = 0;
     state.saveLocal();
 
-    // Actualizamos UI
     const balanceEl = document.getElementById('main-balance-usdt');
     if (balanceEl) balanceEl.innerText = state.totalEarnedUSD.toFixed(4);
 
@@ -67,10 +97,18 @@ export async function claimDailyQuest() {
     }
 
     try {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simula llamada al servidor
+        const initData = window.Telegram?.WebApp?.initData || '';
+        // Petición real al backend para validar la misión
+        const response = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'claim_daily', initData })
+        });
+
+        if (!response.ok) throw new Error("Error en servidor");
         
         state.canClaimDaily = false; 
-        state.totalEarnedUSD += 0.15; // Bono de ejemplo
+        state.totalEarnedUSD += 0.15; // Recompensa
         state.saveLocal();
         
         const balanceEl = document.getElementById('main-balance-usdt');
@@ -84,35 +122,138 @@ export async function claimDailyQuest() {
             btn.style.cursor = "not-allowed";
         }
         
-        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("🎁 ¡Bono de 0.15 USDT añadido a tu bóveda!") : alert("Bono reclamado.");
+        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("🎁 ¡Bono añadido a tu bóveda!") : alert("Bono reclamado.");
     } catch (error) {
         console.error("Error en bono diario", error);
+        if (btn) {
+            btn.innerHTML = `<i class="fa-solid fa-gift"></i> Reclamar Bono Diario`;
+            btn.style.cursor = "pointer";
+        }
+        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("❌ Error al reclamar el bono.") : alert("Error al reclamar.");
     }
 }
 
 // ==========================================
-// 3. PASARELA DE PAGOS Y NAVEGACIÓN
+// 4. PASARELA DE PAGOS SEGURA
 // ==========================================
 export async function openPayModal() {
-    // ... (Tu código de openPayModal se mantiene exactamente igual)
+    if (isGeneratingWallet) return;
+
+    const amountInput = document.getElementById('invest-amount');
+    const amount = parseFloat(amountInput?.value || 0);
+
+    if (!amount || amount < 0.1) {
+        const errorMsg = "❌ El mínimo de inyección de liquidez es 0.10 USDT";
+        window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert(errorMsg) : alert(errorMsg);
+        return;
+    }
+
+    isGeneratingWallet = true;
+    const payModal = document.getElementById('payModal');
+    if (payModal) payModal.style.display = 'flex';
+
+    const addressDisplay = document.getElementById('wallet-address-display');
+    if (addressDisplay) addressDisplay.innerText = "Conectando con la blockchain...";
+    const qrImg = document.getElementById('qr-image');
+    if (qrImg) qrImg.src = ''; 
+
+    try {
+        const initData = window.Telegram?.WebApp?.initData || '';
+        const response = await fetch('/api/invest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount, initData })
+        });
+        
+        if (!response.ok) throw new Error("El nodo rechazó la solicitud.");
+        const depositData = await response.json();
+
+        if (depositData && depositData.address) {
+            if (addressDisplay) addressDisplay.innerText = depositData.address;
+            if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(depositData.address)}&color=00f0ff&bgcolor=05070a`; 
+            startPaymentTimer(30);
+        }
+    } catch (e) {
+        console.error("Error de seguridad en pagos:", e);
+        if (addressDisplay) addressDisplay.innerText = "Error de red neuronal. Reintentando...";
+        setTimeout(() => closePayModal(), 3000);
+    } finally {
+        isGeneratingWallet = false;
+    }
 }
 
 export function closePayModal() {
-    // ... (Tu código de closePayModal se mantiene exactamente igual)
+    const payModal = document.getElementById('payModal');
+    if (payModal) payModal.style.display = 'none';
+    if (paymentTimerInterval) {
+        clearInterval(paymentTimerInterval);
+        paymentTimerInterval = null;
+    }
 }
 
+function startPaymentTimer(minutes) {
+    if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+    let seconds = minutes * 60;
+
+    paymentTimerInterval = setInterval(() => {
+        const timerDisplay = document.getElementById('payment-countdown');
+        if (seconds <= 0) {
+            clearInterval(paymentTimerInterval);
+            paymentTimerInterval = null;
+            if (timerDisplay) timerDisplay.innerText = "Sesión expirada";
+            return;
+        }
+        let mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        let secs = (seconds % 60).toString().padStart(2, '0');
+        if (timerDisplay) timerDisplay.innerText = `${mins}:${secs}`; 
+        seconds--;
+    }, 1000);
+}
+
+// ==========================================
+// 5. NAVEGACIÓN Y UI
+// ==========================================
 export function switchTab(tabId) {
     document.querySelectorAll('.view').forEach(section => section.classList.remove('active'));
     const activeSection = document.getElementById(tabId);
     if (activeSection) activeSection.classList.add('active'); 
 }
 
+export function copyLink() {
+    const refInput = document.getElementById('ref-link');
+    if (refInput && !refInput.value.includes('GENERANDO')) {
+        navigator.clipboard.writeText(refInput.value).then(() => {
+            window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("✅ Nodo de referido copiado.") : alert("Copiado.");
+        });
+    }
+}
+
+export function copyAddress() {
+    const addrDisplay = document.getElementById('wallet-address-display');
+    if (addrDisplay && addrDisplay.innerText.length > 20) {
+        navigator.clipboard.writeText(addrDisplay.innerText).then(() => {
+            window.Telegram?.WebApp ? window.Telegram.WebApp.showAlert("✅ Hash copiado al portapapeles.") : alert("Copiado.");
+        });
+    }
+}
+
 export function calculateROI() {
-    // ... (Tu código de calculateROI se mantiene exactamente igual)
+    const amountInput = document.getElementById('invest-amount');
+    const calcWeekly = document.getElementById('calc-weekly');
+    const calcMonthly = document.getElementById('calc-monthly');
+    const calcReturn = document.getElementById('calc-return');
+
+    const amount = parseFloat(amountInput?.value) || 0;
+    if (amount >= 0.1) {
+        const daily = amount * 0.05;
+        if (calcWeekly) calcWeekly.innerText = (daily * 7).toFixed(2);
+        if (calcMonthly) calcMonthly.innerText = (daily * 30).toFixed(2);
+        if (calcReturn) calcReturn.innerText = (amount * 2).toFixed(2);
+    }
 }
 
 // ==========================================
-// 4. ARRANQUE DEL SISTEMA
+// 6. ARRANQUE DEL SISTEMA
 // ==========================================
 window.onload = async () => {
     console.log("Iniciando motor de minería pasiva...");
@@ -125,6 +266,9 @@ window.onload = async () => {
 
     try {
         const tgData = window.Telegram?.WebApp?.initDataUnsafe;
+        const secureInitData = window.Telegram?.WebApp?.initData;
+
+        // Actualización UI inicial por defecto
         const balanceEl = document.getElementById('main-balance-usdt');
         if (balanceEl) balanceEl.innerText = state.totalEarnedUSD.toFixed(4);
 
@@ -132,6 +276,15 @@ window.onload = async () => {
             state.userId = tgData.user.id;
             document.getElementById('user-id').innerText = `ID: ${state.userId}`;
             document.getElementById('user-full-name').innerText = `${tgData.user.first_name} ${tgData.user.last_name || ''}`.trim();
+            
+            // Verificamos si es admin
+            if (secureInitData) {
+                const isAdmin = await verifyAdminStatus(secureInitData);
+                if (isAdmin) state.isAdmin = true;
+                
+                // Pedimos los saldos reales a Supabase en segundo plano
+                syncUserData(secureInitData);
+            }
         }
 
         startMiningEngine();
@@ -143,6 +296,8 @@ window.onload = async () => {
 
 window.openPayModal = openPayModal;
 window.closePayModal = closePayModal;
+window.copyLink = copyLink;
+window.copyAddress = copyAddress;
 window.calculateROI = calculateROI;
 window.switchTab = switchTab;
 window.claimMining = claimMining;
