@@ -193,23 +193,117 @@
             <button class="toggle-btn" id="btn-lechuga" onclick="toggleShop('lechuga')">Lechuga</button>
         </div>
 
-        <!-- Sub-vista Conejos -->
+            <!-- Sub-vista Conejos -->
         <div id="shop-conejos" style="display: block;">
-            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px;">Cada conejo cosecha zanahorias mientras tenga lechuga. Puedes comprar el mismo una y otra vez.</p>
+            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px;">Cada conejo cosecha zanahorias todos los días mientras tenga lechuga. Puedes comprar el mismo una y otra vez.</p>
+            
             <div class="shop-grid">
+                <!-- Nivel 1 -->
                 <div class="shop-item">
                     <div class="roi-badge">6.7%/día</div>
                     <div class="item-icon">🐰</div>
-                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejito Blanco</h3>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejito Bebé</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.01/día</span></p>
-                    <button class="btn-main">$0.15</button>
+                    <button class="btn-main" onclick="comprarConejo('lvl1', 0.15)">$0.15</button>
                 </div>
+
+                <!-- Nivel 2 -->
                 <div class="shop-item">
                     <div class="roi-badge">8%/día</div>
                     <div class="item-icon">🐇</div>
                     <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Manchado</h3>
                     <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 8,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.08/día</span></p>
-                    <button class="btn-main">$1.00</button>
+                    <button class="btn-main" onclick="comprarConejo('lvl2', 1.00)">$1.00</button>
+                </div>
+                
+                <!-- Nivel 3 -->
+                <div class="shop-item">
+                    <div class="roi-badge">8.4%/día</div>
+                    <div class="item-icon">🐰🤎</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Marrón</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 21,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.21/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl3', 2.50)">$2.50</button>
+                </div>
+
+                <!-- Nivel 4 -->
+                <div class="shop-item">
+                    <div class="roi-badge">8.8%/día</div>
+                    <div class="item-icon">🐰☁️</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Angora</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 44,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.44/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl4', 5.00)">$5.00</button>
+                </div>
+
+                <!-- Nivel 5 -->
+                <div class="shop-item">
+                    <div class="roi-badge">9.2%/día</div>
+                    <div class="item-icon">🐰🔴</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Rojizo</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 92,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $0.92/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl5', 10.00)">$10.00</button>
+                </div>
+
+                <!-- Nivel 6 -->
+                <div class="shop-item">
+                    <div class="roi-badge">9.6%/día</div>
+                    <div class="item-icon">🐰🪨</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Gris</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 240,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $2.40/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl6', 25.00)">$25.00</button>
+                </div>
+
+                <!-- Nivel 7 -->
+                <div class="shop-item">
+                    <div class="roi-badge">10%/día</div>
+                    <div class="item-icon">🐰👑</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Coneja Reina</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 500,000/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $5.00/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl7', 50.00)">$50.00</button>
+                </div>
+
+                <!-- Nivel 8 -->
+                <div class="shop-item">
+                    <div class="roi-badge">10.4%/día</div>
+                    <div class="item-icon">🐰🥉</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Cobrizo</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 1.04M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $10.40/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl8', 100.00)">$100.00</button>
+                </div>
+
+                <!-- Nivel 9 -->
+                <div class="shop-item">
+                    <div class="roi-badge">10.8%/día</div>
+                    <div class="item-icon">🐰🎩</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Crestado</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 2.7M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $27.00/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl9', 250.00)">$250.00</button>
+                </div>
+
+                <!-- Nivel 10 -->
+                <div class="shop-item">
+                    <div class="roi-badge">11.2%/día</div>
+                    <div class="item-icon">🐰💎</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Diamante</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 5.6M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $56.00/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl10', 500.00)">$500.00</button>
+                </div>
+
+                <!-- Nivel 11 -->
+                <div class="shop-item">
+                    <div class="roi-badge">11.6%/día</div>
+                    <div class="item-icon">🐰🔥</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Imperial</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 11.6M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $116.00/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl11', 1000.00)">$1,000.00</button>
+                </div>
+
+                <!-- Nivel 12 -->
+                <div class="shop-item">
+                    <div class="roi-badge">12%/día</div>
+                    <div class="item-icon" style="filter: drop-shadow(0 0 10px gold);">🐰🏆</div>
+                    <h3 style="font-size: 0.9rem; font-weight: 900;">Conejo Dorado</h3>
+                    <p style="font-size: 0.8rem; font-weight: 700; margin: 8px 0;">🥕 30M/día<br><span style="color: var(--text-muted); font-size: 0.7rem;">≈ $300.00/día</span></p>
+                    <button class="btn-main" onclick="comprarConejo('lvl12', 2500.00)">$2,500.00</button>
                 </div>
             </div>
         </div>
