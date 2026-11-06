@@ -3,30 +3,34 @@
 // ==========================================
 const state = {
     saldo: parseFloat(localStorage.getItem('cf_saldo')) || 0.00,
-    zanahorias: parseFloat(localStorage.getItem('cf_zanahorias')) || 0,
-    lechugaFin: parseInt(localStorage.getItem('cf_lechuga_fin')) || 0, // Timestamp de cuándo se acaba la comida
-    
-    // Inventario de conejos (Cantidad comprada de cada uno)
-    conejos: JSON.parse(localStorage.getItem('cf_conejos')) || {
-        blanco: 0,
-        manchado: 0,
-        marron: 0,
-        rey: 0
+    withdrawable: parseFloat(localStorage.getItem('cf_withdrawable')) || 0.00,
+    huevos: parseFloat(localStorage.getItem('cf_huevos')) || 0,
+    comederoFin: parseInt(localStorage.getItem('cf_comedero_fin')) || 0, // Timestamp de cuándo se acaba el maíz
+
+    // Inventario de las 8 razas de gallinas
+    gallinas: JSON.parse(localStorage.getItem('cf_gallinas')) || {
+        lvl1: 0, lvl2: 0, lvl3: 0, lvl4: 0,
+        lvl5: 0, lvl6: 0, lvl7: 0, lvl8: 0
     },
 
-    // Tasas de producción (Zanahorias por día)
+    // Tasas de producción (Huevos por día de cada gallina)
     tasas: {
-        blanco: 1000,
-        manchado: 8000,
-        marron: 1040000,
-        rey: 30000000
+        lvl1: 92000,
+        lvl2: 240000,
+        lvl3: 500000,
+        lvl4: 1040000,
+        lvl5: 2700000,
+        lvl6: 5600000,
+        lvl7: 11600000,
+        lvl8: 30000000
     },
 
     guardar() {
         localStorage.setItem('cf_saldo', this.saldo.toFixed(4));
-        localStorage.setItem('cf_zanahorias', this.zanahorias.toFixed(2));
-        localStorage.setItem('cf_lechuga_fin', this.lechugaFin.toString());
-        localStorage.setItem('cf_conejos', JSON.stringify(this.conejos));
+        localStorage.setItem('cf_withdrawable', this.withdrawable.toFixed(4));
+        localStorage.setItem('cf_huevos', this.huevos.toFixed(2));
+        localStorage.setItem('cf_comedero_fin', this.comederoFin.toString());
+        localStorage.setItem('cf_gallinas', JSON.stringify(this.gallinas));
     }
 };
 
@@ -40,160 +44,175 @@ function gameLoop() {
     const deltaSegundos = (ahora - ultimoTick) / 1000;
     ultimoTick = ahora;
 
-    // 1. Verificar si hay lechuga (comida)
-    const tieneLechuga = state.lechugaFin > ahora;
+    const tieneComida = state.comederoFin > ahora;
 
-    if (tieneLechuga) {
-        // 2. Calcular producción total por segundo
-        let produccionDiariaTotal = 
-            (state.conejos.blanco * state.tasas.blanco) +
-            (state.conejos.manchado * state.tasas.manchado) +
-            (state.conejos.marron * state.tasas.marron) +
-            (state.conejos.rey * state.tasas.rey);
+    if (tieneComida) {
+        let produccionDiariaTotal = Object.keys(state.gallinas).reduce((total, key) => {
+            return total + (state.gallinas[key] * state.tasas[key]);
+        }, 0);
 
-        const produccionPorSegundo = produccionDiariaTotal / 86400; // 86400 segundos en un día
-        
-        // 3. Sumar zanahorias
-        state.zanahorias += produccionPorSegundo * deltaSegundos;
+        const produccionPorSegundo = produccionDiariaTotal / 86400;
+        state.huevos += produccionPorSegundo * deltaSegundos;
     }
 
-    // 4. Actualizar la interfaz gráfica
-    actualizarDOM(tieneLechuga, ahora);
+    actualizarDOM(tieneComida, ahora);
 }
 
-// Ejecutar el motor 10 veces por segundo para animaciones fluidas
 setInterval(gameLoop, 100);
-setInterval(() => state.guardar(), 5000); // Guardar automático cada 5 segundos
+setInterval(() => state.guardar(), 5000);
 
 // ==========================================
-// 3. LÓGICA DE COMPRA Y VENTA
+// 3. LÓGICA DE JUEGO (API EXPUESTA A HTML)
 // ==========================================
+window.gameAPI = {
+    venderZanahorias() {
+        if (state.huevos >= 1000) {
+            const gananciaUSD = (state.huevos / 100000) * 1; // 100,000 huevos = $1.00 (ajustable según tu tasa)
+            state.saldo += gananciaUSD;
+            state.withdrawable += gananciaUSD;
+            state.huevos = 0;
+            state.guardar();
 
-// Tasa de cambio: 1,000 zanahorias = $0.01
-window.venderZanahorias = function() {
-    if (state.zanahorias >= 1000) {
-        // Calculamos el valor en USD
-        const gananciaUSD = (state.zanahorias / 1000) * 0.01;
-        state.saldo += gananciaUSD;
-        state.zanahorias = 0; // Se vacía la cesta
-        state.guardar();
-        
-        mostrarNotificacion(`¡Vendiste tus zanahorias por $${gananciaUSD.toFixed(2)}!`);
-        actualizarDOM(state.lechugaFin > Date.now(), Date.now());
-    } else {
-        mostrarNotificacion("Necesitas al menos 1,000 zanahorias para vender.");
-    }
-};
-
-window.comprarConejo = function(tipo, precioUSD) {
-    if (state.saldo >= precioUSD) {
-        state.saldo -= precioUSD;
-        state.conejos[tipo]++;
-        state.guardar();
-        mostrarNotificacion(`¡Nuevo conejo comprado con éxito!`);
-        actualizarDOM(state.lechugaFin > Date.now(), Date.now());
-    } else {
-        mostrarNotificacion("Saldo insuficiente. ¡Necesitas recargar o vender más zanahorias!");
-    }
-};
-
-window.comprarLechuga = function(precioUSD, diasExtra) {
-    if (state.saldo >= precioUSD) {
-        state.saldo -= precioUSD;
-        
-        const ahora = Date.now();
-        const milisegundosExtra = diasExtra * 86400 * 1000;
-        
-        // Si ya tenía tiempo, se le suma. Si no, se calcula desde ahora.
-        if (state.lechugaFin > ahora) {
-            state.lechugaFin += milisegundosExtra;
+            mostrarNotificacion(`¡Vendiste tus huevos por $${gananciaUSD.toFixed(4)}!`);
+            actualizarDOM(state.comederoFin > Date.now(), Date.now());
         } else {
-            state.lechugaFin = ahora + milisegundosExtra;
+            mostrarNotificacion("Necesitas al menos 1,000 huevos para vender.");
         }
-        
-        state.guardar();
-        mostrarNotificacion(`¡Compraste alimento para ${diasExtra} días!`);
-        actualizarDOM(true, ahora);
-    } else {
-        mostrarNotificacion("Saldo insuficiente para comprar lechuga.");
-    }
-};
+    },
 
-// Solo para pruebas: Te regala dinero para que pruebes los botones
-window.regalarSaldoPrueba = function() {
-    state.saldo += 10.00;
-    state.guardar();
-    mostrarNotificacion("¡$10.00 añadidos para pruebas!");
+    comprarConejo(tipo, precioUSD) {
+        if (state.saldo >= precioUSD) {
+            state.saldo -= precioUSD;
+            if (state.gallinas[tipo] !== undefined) {
+                state.gallinas[tipo]++;
+            }
+            state.guardar();
+            mostrarNotificacion(`¡Gallina comprada con éxito!`);
+            actualizarDOM(state.comederoFin > Date.now(), Date.now());
+        } else {
+            mostrarNotificacion("Saldo insuficiente. ¡Recarga o vende más huevos!");
+        }
+    },
+
+    comprarAlimento(precioUSD, cantidadMaiz) {
+        if (state.saldo >= precioUSD) {
+            state.saldo -= precioUSD;
+
+            const ahora = Date.now();
+            // Supongamos que cada 50,000 de maíz dura 50 días (1 día por cada 1,000 maíz)
+            const milisegundosExtra = (cantidadMaiz / 1000) * 86400 * 1000;
+
+            if (state.comederoFin > ahora) {
+                state.comederoFin += milisegundosExtra;
+            } else {
+                state.comederoFin = ahora + milisegundosExtra;
+            }
+
+            state.guardar();
+            mostrarNotificacion(`¡Compraste ${cantidadMaiz.toLocaleString()} unidades de maíz!`);
+            actualizarDOM(true, ahora);
+        } else {
+            mostrarNotificacion("Saldo insuficiente para comprar maíz.");
+        }
+    },
+
+    reclamarBono() {
+        state.comederoFin = Math.max(state.comederoFin, Date.now()) + (2000 * 86400 * 1000);
+        state.guardar();
+        mostrarNotificacion("¡Has reclamado tu maíz diario con éxito!");
+        actualizarDOM(true, Date.now());
+    },
+
+    regalarSaldo() {
+        state.saldo += 10.00;
+        state.guardar();
+        mostrarNotificacion("¡$10.00 añadidos para pruebas!");
+        actualizarDOM(state.comederoFin > Date.now(), Date.now());
+    }
 };
 
 // ==========================================
 // 4. ACTUALIZACIÓN VISUAL (DOM)
 // ==========================================
-function actualizarDOM(tieneLechuga, ahora) {
-    // Actualizar Saldo Global (Hay que ponerle un id="saldo-global" al saldo del header)
-    document.querySelectorAll('.balance-pill').forEach(el => {
-        el.innerHTML = `$${state.saldo.toFixed(2)} <button class="btn-add" onclick="regalarSaldoPrueba()">+</button>`;
+function actualizarDOM(tieneComida, ahora) {
+    // Saldo en el Header y Vista Wallet
+    document.getElementById('user-balance').innerText = `$${state.saldo.toFixed(2)}`;
+    const walletBal = document.getElementById('wallet-balance');
+    const walletWith = document.getElementById('wallet-withdrawable');
+    if (walletBal) walletBal.innerText = `$${state.saldo.toFixed(2)}`;
+    if (walletWith) walletWith.innerText = `$${state.withdrawable.toFixed(2)}`;
+
+    // Cesta en la Granja
+    const cestaCantidad = document.getElementById('cesta-cantidad');
+    const cestaUsd = document.getElementById('cesta-usd');
+    const btnVenderText = document.getElementById('btn-vender-text');
+
+    const usdHuevos = (state.huevos / 100000);
+    if (cestaCantidad) cestaCantidad.innerText = Math.floor(state.huevos).toLocaleString();
+    if (cestaUsd) cestaUsd.innerText = `≈ $${usdHuevos.toFixed(4)}`;
+    if (btnVenderText) btnVenderText.innerText = `${Math.floor(state.huevos).toLocaleString()} → +$${usdHuevos.toFixed(4)}`;
+
+    // Calcular Producción Total Diaria y Total de Gallinas
+    let prodDiaria = 0;
+    let totalGallinas = 0;
+    Object.keys(state.gallinas).forEach(key => {
+        prodDiaria += state.gallinas[key] * state.tasas[key];
+        totalGallinas += state.gallinas[key];
     });
 
-    // Actualizar Cesta en la Granja
-    const cestaValor = document.querySelector('.basket-info div div:nth-child(2)');
-    const cestaUsd = document.querySelector('.basket-info div div:nth-child(3)');
-    if (cestaValor) cestaValor.innerText = Math.floor(state.zanahorias).toLocaleString();
-    if (cestaUsd) cestaUsd.innerText = `≈ $${((state.zanahorias / 1000) * 0.01).toFixed(4)}`;
+    let gananciaDiariaUSD = (prodDiaria / 100000);
 
-    // Actualizar Botón de Vender
-    const btnVender = document.querySelector('.btn-sell span');
-    if (btnVender) {
-        const usdCalculado = ((state.zanahorias / 1000) * 0.01).toFixed(4);
-        btnVender.innerText = `🥕 ${Math.floor(state.zanahorias).toLocaleString()} → +$${usdCalculado}`;
-    }
+    // Actualizar Estadísticas
+    const statProd = document.getElementById('stat-prod');
+    const statGanancia = document.getElementById('stat-ganancia');
+    const statConejos = document.getElementById('stat-conejos');
 
-    // Calcular Producción Diaria Actual
-    let prodDiaria = 
-        (state.conejos.blanco * state.tasas.blanco) +
-        (state.conejos.manchado * state.tasas.manchado) +
-        (state.conejos.marron * state.tasas.marron) +
-        (state.conejos.rey * state.tasas.rey);
-    let gananciaDiariaUSD = (prodDiaria / 1000) * 0.01;
-    let totalConejos = state.conejos.blanco + state.conejos.manchado + state.conejos.marron + state.conejos.rey;
+    if (statProd) statProd.innerText = prodDiaria.toLocaleString();
+    if (statGanancia) statGanancia.innerText = `$${gananciaDiariaUSD.toFixed(2)}`;
+    if (statConejos) statConejos.innerText = totalGallinas.toString();
 
-    // Actualizar Cajas de Estadísticas
-    const statsElements = document.querySelectorAll('.stat-box strong');
-    if (statsElements.length >= 3) {
-        statsElements[0].innerText = `🥕 ${prodDiaria.toLocaleString()}`;
-        statsElements[1].innerText = `$${gananciaDiariaUSD.toFixed(2)}`;
-        statsElements[2].innerText = totalConejos.toString();
-    }
+    // Comedero / Maíz
+    const comederoCantidad = document.getElementById('comedero-cantidad');
+    const comederoTiempo = document.getElementById('comedero-tiempo');
+    const comederoTienda = document.getElementById('comedero-tienda');
 
-    // Formatear Tiempo de Lechuga (Comedero)
-    const comederoTexto = document.querySelector('.card h3 + div + div');
-    const comederoCantidad = document.querySelector('.card h3 + div');
-    if (comederoTexto && comederoCantidad) {
-        if (tieneLechuga) {
-            const segundosRestantes = Math.floor((state.lechugaFin - ahora) / 1000);
-            const dias = Math.floor(segundosRestantes / 86400);
-            const horas = Math.floor((segundosRestantes % 86400) / 3600);
-            const minutos = Math.floor((segundosRestantes % 3600) / 60);
-            
-            comederoTexto.innerText = `Dura ${dias}d ${horas}h ${minutos}m`;
-            comederoTexto.style.color = 'var(--text-muted)';
-            comederoCantidad.innerText = "LLENO";
-            comederoCantidad.style.color = "var(--text-dark)";
+    const tiempoRestantesSeg = Math.floor((state.comederoFin - ahora) / 1000);
+    const maizEstimadoRestante = Math.max(0, Math.floor(tiempoRestantesSeg * (prodDiaria / 86400)));
+
+    if (comederoCantidad) comederoCantidad.innerText = maizEstimadoRestante.toLocaleString();
+    if (comederoTienda) comederoTienda.innerText = maizEstimadoRestante.toLocaleString();
+
+    if (comederoTiempo) {
+        if (tieneComida && tiempoRestantesSeg > 0) {
+            const dias = Math.floor(tiempoRestantesSeg / 86400);
+            const horas = Math.floor((tiempoRestantesSeg % 86400) / 3600);
+            comederoTiempo.innerText = `Dura ${dias}d ${horas}h`;
+            comederoTiempo.style.color = 'var(--text-muted)';
         } else {
-            comederoTexto.innerText = "¡CONEJOS HAMBRIENTOS!";
-            comederoTexto.style.color = "red";
-            comederoCantidad.innerText = "VACÍO";
-            comederoCantidad.style.color = "red";
+            comederoTiempo.innerText = "SUMINISTRO AGOTADO";
+            comederoTiempo.style.color = "red";
         }
     }
 }
 
 function mostrarNotificacion(mensaje) {
-    // Si estás dentro de Telegram, usa su alerta nativa, si no, usa el alert de navegador
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
         window.Telegram.WebApp.showAlert(mensaje);
     } else {
-        alert(mensaje);
+        // Creamos un toast visual bonito en la pantalla si no estamos en Telegram Desktop
+        const container = document.getElementById('toast-container');
+        if (container) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#22c55e;"></i> <span>${mensaje}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        } else {
+            alert(mensaje);
+        }
     }
 }
 
@@ -201,31 +220,29 @@ function mostrarNotificacion(mensaje) {
 window.onload = function() {
     const ahora = Date.now();
     const tiempoDesconectadoSegundos = (ahora - ultimoTick) / 1000;
-    
-    // Si tenía comida mientras estuvo fuera
-    if (state.lechugaFin > ultimoTick) {
+
+    if (state.comederoFin > ultimoTick) {
         const segundosEfectivos = Math.min(
             tiempoDesconectadoSegundos, 
-            (state.lechugaFin - ultimoTick) / 1000
+            (state.comederoFin - ultimoTick) / 1000
         );
-        
-        let produccionDiariaTotal = 
-            (state.conejos.blanco * state.tasas.blanco) +
-            (state.conejos.manchado * state.tasas.manchado) +
-            (state.conejos.marron * state.tasas.marron) +
-            (state.conejos.rey * state.tasas.rey);
+
+        let produccionDiariaTotal = 0;
+        Object.keys(state.gallinas).forEach(key => {
+            produccionDiariaTotal += state.gallinas[key] * state.tasas[key];
+        });
 
         const gananciaAusente = (produccionDiariaTotal / 86400) * segundosEfectivos;
-        
+
         if (gananciaAusente > 0) {
-            state.zanahorias += gananciaAusente;
+            state.huevos += gananciaAusente;
             state.guardar();
             setTimeout(() => {
-                mostrarNotificacion(`Tus conejos recolectaron ${Math.floor(gananciaAusente).toLocaleString()} zanahorias mientras no estabas. ¡Buen trabajo!`);
+                mostrarNotificacion(`Tus gallinas pusieron ${Math.floor(gananciaAusente).toLocaleString()} huevos mientras no estabas. ¡Buen trabajo!`);
             }, 500);
         }
     }
-    
+
     ultimoTick = ahora;
-    actualizarDOM(state.lechugaFin > ahora, ahora);
+    actualizarDOM(state.comederoFin > ahora, ahora);
 };
